@@ -69,6 +69,8 @@ export declare module ReactXP {
     var WebView: Interfaces.WebViewConstructor;
     type Animated = Interfaces.Animated;
     var Animated: Interfaces.Animated;
+    type FocusUtils = Interfaces.FocusUtils;
+    var FocusUtils: Interfaces.FocusUtils;
     export import CommonProps = RXTypes.CommonProps;
     export import CommonStyledProps = RXTypes.CommonStyledProps;
     export import Types = RXTypes;

@@ -31,6 +31,7 @@ var React = require("react");
 var RN = require("react-native");
 var PropTypes = require("prop-types");
 var AccessibilityUtil_1 = require("./AccessibilityUtil");
+var AutoFocusHelper_1 = require("../common/utils/AutoFocusHelper");
 var Animated_1 = require("./Animated");
 var AppConfig_1 = require("../common/AppConfig");
 var EventHelpers_1 = require("./utils/EventHelpers");
@@ -224,8 +225,15 @@ var Button = /** @class */ (function (_super) {
         return this._render(internalProps);
     };
     Button.prototype.componentDidMount = function () {
+        var _this = this;
         this._mixin_componentDidMount();
         this._isMounted = true;
+        var autoFocus = this.props.autoFocus;
+        if (autoFocus) {
+            AutoFocusHelper_1.requestFocus(autoFocus.id, this, autoFocus.focus || (function () { if (_this._isMounted) {
+                _this.focus();
+            } }));
+        }
     };
     Button.prototype.componentWillUnmount = function () {
         this._mixin_componentWillUnmount();

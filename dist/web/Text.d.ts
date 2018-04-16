@@ -11,10 +11,13 @@ import React = require('react');
 import Types = require('../common/Types');
 export declare class Text extends React.Component<Types.TextProps, {}> {
     static childContextTypes: React.ValidationMap<any>;
+    private _isMounted;
     getChildContext(): {
         isRxParentAText: boolean;
     };
     render(): JSX.Element;
+    componentDidMount(): void;
+    componentWillUnmount(): void;
     _getStyles(): Types.TextStyleRuleSet;
     blur(): void;
     focus(): void;

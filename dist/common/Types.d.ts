@@ -284,6 +284,16 @@ export declare enum AccessibilityTrait {
     Switch = 35,
     None = 36,
 }
+export interface AutoFocusValue {
+    id: string;
+    focus?: () => void;
+}
+export declare type FocusArbitrator = (candidates: FocusCandidate[]) => boolean;
+export interface FocusCandidate {
+    id: string;
+    component: React.Component<any, any>;
+    focus: () => void;
+}
 export interface CommonStyledProps<T> extends CommonProps {
     style?: StyleRuleSetRecursive<T>;
 }
@@ -292,6 +302,7 @@ export interface ButtonProps extends CommonStyledProps<ButtonStyleRuleSet>, Comm
     disabled?: boolean;
     disabledOpacity?: number;
     delayLongPress?: number;
+    autoFocus?: AutoFocusValue;
     onAccessibilityTapIOS?: Function;
     onContextMenu?: (e: MouseEvent) => void;
     onPress?: (e: SyntheticEvent) => void;
@@ -348,6 +359,7 @@ export interface TextPropsShared extends CommonProps {
     ellipsizeMode?: 'head' | 'middle' | 'tail';
     textBreakStrategy?: 'highQuality' | 'simple' | 'balanced';
     importantForAccessibility?: ImportantForAccessibility;
+    autoFocus?: AutoFocusValue;
     onPress?: (e: SyntheticEvent) => void;
     id?: string;
     onContextMenu?: (e: MouseEvent) => void;
@@ -372,6 +384,7 @@ export interface ViewPropsShared extends CommonProps, CommonAccessibilityProps {
     viewLayerTypeAndroid?: ViewLayerType;
     restrictFocusWithin?: boolean;
     limitFocusWithin?: LimitFocusType;
+    autoFocus?: AutoFocusValue;
     importantForLayout?: boolean;
     id?: string;
     ariaLabelledBy?: string;
@@ -540,7 +553,7 @@ export interface LinkProps extends CommonStyledProps<LinkStyleRuleSet> {
 export interface TextInputPropsShared extends CommonProps, CommonAccessibilityProps {
     autoCapitalize?: 'none' | 'sentences' | 'words' | 'characters';
     autoCorrect?: boolean;
-    autoFocus?: boolean;
+    autoFocus?: AutoFocusValue;
     blurOnSubmit?: boolean;
     defaultValue?: string;
     editable?: boolean;

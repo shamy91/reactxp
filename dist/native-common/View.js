@@ -31,6 +31,7 @@ var assert = require("assert");
 var React = require("react");
 var RN = require("react-native");
 var AccessibilityUtil_1 = require("./AccessibilityUtil");
+var AutoFocusHelper_1 = require("../common/utils/AutoFocusHelper");
 var Animated_1 = require("./Animated");
 var EventHelpers_1 = require("./utils/EventHelpers");
 var Styles_1 = require("./Styles");
@@ -185,9 +186,16 @@ var View = /** @class */ (function (_super) {
         }
     };
     View.prototype.componentDidMount = function () {
+        var _this = this;
         this._isMounted = true;
         if (this._mixin_componentDidMount) {
             this._mixin_componentDidMount();
+        }
+        var autoFocus = this.props.autoFocus;
+        if (autoFocus) {
+            AutoFocusHelper_1.requestFocus(autoFocus.id, this, autoFocus.focus || (function () { if (_this._isMounted) {
+                _this.focus();
+            } }));
         }
     };
     View.prototype.componentWillUnmount = function () {

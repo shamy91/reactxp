@@ -309,3 +309,9 @@ export interface International {
     forceRTL(force: boolean): void;
     isRTL(): boolean;
 }
+
+export interface FocusUtils {
+    FirstFocusableId: string;
+    setFocusArbitrator(arbitrator: Types.FocusArbitrator): void;
+    requestFocus(id: string, component: React.Component<any, any>, focus: () => void): void;
+}

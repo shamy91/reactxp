@@ -29,6 +29,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 var React = require("react");
 var RN = require("react-native");
 var AccessibilityUtil_1 = require("./AccessibilityUtil");
+var AutoFocusHelper_1 = require("../common/utils/AutoFocusHelper");
 var EventHelpers_1 = require("./utils/EventHelpers");
 var Styles_1 = require("./Styles");
 var _styles = {
@@ -109,11 +110,18 @@ var TextInput = /** @class */ (function (_super) {
             });
         }
     };
+    TextInput.prototype.componentDidMount = function () {
+        var _this = this;
+        var autoFocus = this.props.autoFocus;
+        if (autoFocus) {
+            AutoFocusHelper_1.requestFocus(autoFocus.id, this, autoFocus.focus || (function () { return _this.focus(); }));
+        }
+    };
     TextInput.prototype._render = function (props) {
         return (React.createElement(RN.TextInput, __assign({}, props)));
     };
     TextInput.prototype.render = function () {
-        var editable = (this.props.editable !== undefined ? this.props.editable : true);
+        var editable = this.props.editable !== false;
         var blurOnSubmit = this.props.blurOnSubmit || !this.props.multiline;
         var internalProps = {
             ref: this._onMount,
@@ -123,7 +131,6 @@ var TextInput = /** @class */ (function (_super) {
             autoCorrect: this.props.autoCorrect,
             spellCheck: this.props.spellCheck,
             autoCapitalize: this.props.autoCapitalize,
-            autoFocus: this.props.autoFocus,
             keyboardType: this.props.keyboardType,
             editable: editable,
             selectionColor: this.props.selectionColor,

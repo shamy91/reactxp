@@ -30,6 +30,7 @@ var Button_1 = require("./Button");
 var Picker_1 = require("./Picker");
 var Image_1 = require("./Image");
 var Clipboard_1 = require("./Clipboard");
+var FocusUtils_1 = require("../common/FocusUtils");
 var GestureView_1 = require("./GestureView");
 var Input_1 = require("./Input");
 var International_1 = require("./International");
@@ -51,6 +52,10 @@ var UserPresence_1 = require("./UserPresence");
 var View_1 = require("./View");
 var ViewBase_1 = require("./ViewBase");
 var WebView_1 = require("./WebView");
+// Initialize AutofocusHelper.
+var FocusManager_1 = require("./utils/FocusManager");
+var AutoFocusHelper_1 = require("../common/utils/AutoFocusHelper");
+AutoFocusHelper_1.setSortAndFilterFunc(FocusManager_1.default.sortAndFilterAutoFocusCandidates);
 // -- STRANGE THINGS GOING ON HERE --
 //
 // 1) 'export type Foo = FooImpl; export var Foo = FooImpl;'
@@ -65,6 +70,7 @@ var ReactXP;
     ReactXP.Button = Button_1.Button;
     ReactXP.Picker = Picker_1.Picker;
     ReactXP.Clipboard = Clipboard_1.default;
+    ReactXP.FocusUtils = FocusUtils_1.default;
     ReactXP.GestureView = GestureView_1.GestureView;
     ReactXP.Image = Image_1.Image;
     ReactXP.Input = Input_1.default;

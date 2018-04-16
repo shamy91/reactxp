@@ -32,7 +32,7 @@ export declare type FocusableComponentStateCallback = (restrictedOrLimited: bool
 export declare abstract class FocusManager {
     private static _rootFocusManager;
     private static _restrictionStack;
-    private static _currentRestrictionOwner;
+    protected static _currentRestrictionOwner: FocusManager | undefined;
     private static _restoreRestrictionTimer;
     private static _pendingPrevFocusedComponent;
     protected static _currentFocusedComponent: StoredFocusableComponent | undefined;
@@ -44,7 +44,9 @@ export declare abstract class FocusManager {
     private _parent;
     private _isFocusLimited;
     private _prevFocusedComponent;
-    private _myFocusableComponentIds;
+    protected _myFocusableComponentIds: {
+        [id: string]: boolean;
+    };
     constructor(parent: FocusManager | undefined);
     protected abstract addFocusListenerOnComponent(component: FocusableComponentInternal, onFocus: () => void): void;
     protected abstract removeFocusListenerFromComponent(component: FocusableComponentInternal, onFocus: () => void): void;

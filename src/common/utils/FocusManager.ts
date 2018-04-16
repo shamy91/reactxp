@@ -43,7 +43,7 @@ export abstract class FocusManager {
     private static _rootFocusManager: FocusManager;
 
     private static _restrictionStack: FocusManager[] = [];
-    private static _currentRestrictionOwner: FocusManager|undefined;
+    protected static _currentRestrictionOwner: FocusManager|undefined;
     private static _restoreRestrictionTimer: number|undefined;
     private static _pendingPrevFocusedComponent: StoredFocusableComponent|undefined;
     protected static _currentFocusedComponent: StoredFocusableComponent|undefined;
@@ -54,7 +54,7 @@ export abstract class FocusManager {
     private _parent: FocusManager|undefined;
     private _isFocusLimited: Types.LimitFocusType = Types.LimitFocusType.Unlimited;
     private _prevFocusedComponent: StoredFocusableComponent|undefined;
-    private _myFocusableComponentIds: { [id: string]: boolean } = {};
+    protected _myFocusableComponentIds: { [id: string]: boolean } = {};
 
     constructor(parent: FocusManager|undefined) {
         if (parent) {
@@ -176,6 +176,10 @@ export abstract class FocusManager {
         FocusManager._restrictionStack.push(this);
         FocusManager._currentRestrictionOwner = this;
 
+        if (!noFocusReset) {
+            this.resetFocus();
+        }
+
         Object.keys(FocusManager._allFocusableComponents).forEach(componentId => {
             if (!(componentId in this._myFocusableComponentIds)) {
                 const storedComponent = FocusManager._allFocusableComponents[componentId];
@@ -183,10 +187,6 @@ export abstract class FocusManager {
                 this._updateComponentFocusRestriction(storedComponent);
             }
         });
-
-        if (!noFocusReset) {
-            this.resetFocus();
-        }
     }
 
     removeFocusRestriction() {

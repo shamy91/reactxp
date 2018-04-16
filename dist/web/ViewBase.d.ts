@@ -9,7 +9,7 @@ export declare abstract class ViewBase<P extends Types.ViewProps, S> extends RX.
     private static _appActivationState;
     abstract render(): JSX.Element;
     protected abstract _getContainer(): HTMLElement | null;
-    private _isMounted;
+    protected _isMounted: boolean;
     private _isPopupDisplayed;
     static setActivationState(newState: Types.AppActivationState): void;
     componentWillReceiveProps(nextProps: Types.ViewProps): void;

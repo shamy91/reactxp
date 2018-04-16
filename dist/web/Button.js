@@ -22,6 +22,7 @@ var React = require("react");
 var ReactDOM = require("react-dom");
 var PropTypes = require("prop-types");
 var AccessibilityUtil_1 = require("./AccessibilityUtil");
+var AutoFocusHelper_1 = require("../common/utils/AutoFocusHelper");
 var AppConfig_1 = require("../common/AppConfig");
 var Styles_1 = require("./Styles");
 var Types = require("../common/Types");
@@ -54,6 +55,7 @@ var Button = /** @class */ (function (_super) {
     __extends(Button, _super);
     function Button(props, context) {
         var _this = _super.call(this, props, context) || this;
+        _this._isMounted = false;
         _this._ignoreClick = false;
         _this._isMouseOver = false;
         _this._isFocusedWithKeyboard = false;
@@ -159,6 +161,19 @@ var Button = /** @class */ (function (_super) {
         var ariaHasPopup = AccessibilityUtil_1.default.accessibilityTraitToAriaHasPopup(this.props.accessibilityTraits);
         // NOTE: We use tabIndex=0 to support focus.
         return (React.createElement("button", { style: this._getStyles(), role: ariaRole, title: this.props.title, tabIndex: this.props.tabIndex, "aria-label": this.props.accessibilityLabel || this.props.title, "aria-disabled": this.props.disabled, "aria-hidden": isAriaHidden, "aria-selected": ariaSelected, "aria-checked": ariaChecked, onClick: this.onClick, onContextMenu: this._onContextMenu, onMouseDown: this._onMouseDown, onMouseUp: this._onMouseUp, onMouseEnter: this._onMouseEnter, onMouseLeave: this._onMouseLeave, onFocus: this._onFocus, onBlur: this._onBlur, onKeyDown: this.props.onKeyPress, disabled: this.props.disabled, "aria-haspopup": ariaHasPopup, "aria-controls": this.props.ariaControls, id: this.props.id }, this.props.children));
+    };
+    Button.prototype.componentDidMount = function () {
+        var _this = this;
+        this._isMounted = true;
+        var autoFocus = this.props.autoFocus;
+        if (autoFocus) {
+            AutoFocusHelper_1.requestFocus(autoFocus.id, this, autoFocus.focus || (function () { if (_this._isMounted) {
+                _this.focus();
+            } }));
+        }
+    };
+    Button.prototype.componentWillUnmount = function () {
+        this._isMounted = false;
     };
     Button.prototype.focus = function () {
         var el = ReactDOM.findDOMNode(this);

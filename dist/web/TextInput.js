@@ -19,6 +19,7 @@ var __extends = (this && this.__extends) || (function () {
 })();
 Object.defineProperty(exports, "__esModule", { value: true });
 var React = require("react");
+var AutoFocusHelper_1 = require("../common/utils/AutoFocusHelper");
 var Styles_1 = require("./Styles");
 var FocusManager_1 = require("./utils/FocusManager");
 var _isMac = (typeof navigator !== 'undefined') && (typeof navigator.platform === 'string') && (navigator.platform.indexOf('Mac') >= 0);
@@ -46,8 +47,39 @@ var TextInput = /** @class */ (function (_super) {
         _this._mountedComponent = null;
         _this._selectionStart = 0;
         _this._selectionEnd = 0;
+        _this._isFocused = false;
+        _this._ariaLiveEnabled = false;
         _this._onMount = function (comp) {
             _this._mountedComponent = comp;
+        };
+        _this._onInput = function () {
+            if (_isMac && _this._mountedComponent && _this._isFocused && !_this._ariaLiveEnabled) {
+                // VoiceOver does not handle text inputs properly at the moment, aria-live is a temporary workaround.
+                // And we're adding aria-live only for the focused input which is being edited, otherwise it might
+                // interrupt some required announcements.
+                _this._mountedComponent.setAttribute('aria-live', 'assertive');
+                _this._ariaLiveEnabled = true;
+            }
+        };
+        _this._onFocus = function (e) {
+            if (_this._mountedComponent) {
+                _this._isFocused = true;
+                if (_this.props.onFocus) {
+                    _this.props.onFocus(e);
+                }
+            }
+        };
+        _this._onBlur = function () {
+            if (_this._mountedComponent) {
+                _this._isFocused = false;
+                if (_isMac && _this._ariaLiveEnabled) {
+                    _this._mountedComponent.removeAttribute('aria-live');
+                    _this._ariaLiveEnabled = false;
+                }
+                if (_this.props.onBlur) {
+                    _this.props.onBlur();
+                }
+            }
         };
         _this._onPaste = function (e) {
             if (_this.props.onPaste) {
@@ -128,8 +160,9 @@ var TextInput = /** @class */ (function (_super) {
         }
     };
     TextInput.prototype.componentDidMount = function () {
-        if (this.props.autoFocus) {
-            this.focus();
+        var autoFocus = this.props.autoFocus;
+        if (autoFocus) {
+            AutoFocusHelper_1.requestFocus(autoFocus.id, this, autoFocus.focus || this._focus);
         }
     };
     TextInput.prototype.render = function () {
@@ -147,11 +180,11 @@ var TextInput = /** @class */ (function (_super) {
         var spellCheck = (this.props.spellCheck !== undefined ? this.props.spellCheck : this.props.autoCorrect);
         // Use a textarea for multi-line and a regular input for single-line.
         if (this.props.multiline) {
-            return (React.createElement("textarea", { ref: this._onMount, style: combinedStyles, value: this.state.inputValue, autoCorrect: this.props.autoCorrect === false ? 'off' : undefined, spellCheck: spellCheck, disabled: !editable, maxLength: this.props.maxLength, placeholder: this.props.placeholder, onChange: this._onInputChanged, onKeyDown: this._onKeyDown, onKeyUp: this._checkSelectionChanged, onFocus: this.props.onFocus, onBlur: this.props.onBlur, onMouseDown: this._checkSelectionChanged, onMouseUp: this._checkSelectionChanged, onPaste: this._onPaste, onScroll: this._onScroll, "aria-label": this.props.accessibilityLabel, "aria-live": _isMac ? 'assertive' : undefined }));
+            return (React.createElement("textarea", { ref: this._onMount, style: combinedStyles, value: this.state.inputValue, autoCorrect: this.props.autoCorrect === false ? 'off' : undefined, spellCheck: spellCheck, disabled: !editable, maxLength: this.props.maxLength, placeholder: this.props.placeholder, onChange: this._onInputChanged, onKeyDown: this._onKeyDown, onKeyUp: this._checkSelectionChanged, onInput: this._onInput, onFocus: this._onFocus, onBlur: this._onBlur, onMouseDown: this._checkSelectionChanged, onMouseUp: this._checkSelectionChanged, onPaste: this._onPaste, onScroll: this._onScroll, "aria-label": this.props.accessibilityLabel }));
         }
         else {
             var _a = this._getKeyboardType(), keyboardTypeValue = _a.keyboardTypeValue, wrapInForm = _a.wrapInForm, pattern = _a.pattern;
-            var input = (React.createElement("input", { ref: this._onMount, style: combinedStyles, value: this.state.inputValue, autoCorrect: this.props.autoCorrect === false ? 'off' : undefined, spellCheck: spellCheck, disabled: !editable, maxLength: this.props.maxLength, placeholder: this.props.placeholder, onChange: this._onInputChanged, onKeyDown: this._onKeyDown, onKeyUp: this._checkSelectionChanged, onFocus: this.props.onFocus, onBlur: this.props.onBlur, onMouseDown: this._checkSelectionChanged, onMouseUp: this._checkSelectionChanged, onPaste: this._onPaste, "aria-label": this.props.accessibilityLabel, "aria-live": _isMac ? 'assertive' : undefined, type: keyboardTypeValue, pattern: pattern }));
+            var input = (React.createElement("input", { ref: this._onMount, style: combinedStyles, value: this.state.inputValue, autoCorrect: this.props.autoCorrect === false ? 'off' : undefined, spellCheck: spellCheck, disabled: !editable, maxLength: this.props.maxLength, placeholder: this.props.placeholder, onChange: this._onInputChanged, onKeyDown: this._onKeyDown, onKeyUp: this._checkSelectionChanged, onInput: this._onInput, onFocus: this._onFocus, onBlur: this._onBlur, onMouseDown: this._checkSelectionChanged, onMouseUp: this._checkSelectionChanged, onPaste: this._onPaste, "aria-label": this.props.accessibilityLabel, type: keyboardTypeValue, pattern: pattern }));
             if (wrapInForm) {
                 // Wrap the input in a form tag if required
                 input = (React.createElement("form", { action: '', onSubmit: function (ev) { /* prevent form submission/page reload */ ev.preventDefault(); _this.blur(); }, style: _styles.formStyle }, input));

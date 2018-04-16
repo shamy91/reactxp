@@ -13,6 +13,7 @@ import React = require('react');
 import RN = require('react-native');
 
 import AccessibilityUtil from './AccessibilityUtil';
+import { requestFocus } from '../common/utils/AutoFocusHelper';
 import EventHelpers from './utils/EventHelpers';
 import Styles from './Styles';
 import Types = require('../common/Types');
@@ -62,6 +63,13 @@ export class Text extends React.Component<Types.TextProps, {}> implements React.
                 { this.props.children }
             </RN.Text>
         );
+    }
+
+    componentDidMount() {
+        const autoFocus = this.props.autoFocus;
+        if (autoFocus) {
+            requestFocus(autoFocus.id, this, autoFocus.focus || (() => { if (this._mountedComponent) { this.focus(); } }));
+        }
     }
 
     protected _onMount = (component: RN.ReactNativeBaseComponent<any, any>|null) => {

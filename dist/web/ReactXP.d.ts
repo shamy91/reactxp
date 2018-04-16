@@ -27,6 +27,8 @@ declare module ReactXP {
     var Picker: typeof RXInterfaces.Picker;
     type Clipboard = RXInterfaces.Clipboard;
     var Clipboard: RXInterfaces.Clipboard;
+    type FocusUtils = RXInterfaces.FocusUtils;
+    var FocusUtils: RXInterfaces.FocusUtils;
     type GestureView = RXInterfaces.GestureView;
     var GestureView: typeof RXInterfaces.GestureView;
     type Image = RXInterfaces.Image;

@@ -22,6 +22,7 @@ var React = require("react");
 var ReactDOM = require("react-dom");
 var PropTypes = require("prop-types");
 var AccessibilityUtil_1 = require("./AccessibilityUtil");
+var AutoFocusHelper_1 = require("../common/utils/AutoFocusHelper");
 var Styles_1 = require("./Styles");
 // Adding a CSS rule to display non-selectable texts. Those texts
 // will be displayed as pseudo elements to prevent them from being copied
@@ -58,7 +59,9 @@ var _styles = {
 var Text = /** @class */ (function (_super) {
     __extends(Text, _super);
     function Text() {
-        return _super !== null && _super.apply(this, arguments) || this;
+        var _this = _super !== null && _super.apply(this, arguments) || this;
+        _this._isMounted = false;
+        return _this;
     }
     Text.prototype.getChildContext = function () {
         // Let descendant Types components know that their nearest Types ancestor is an Types.Text.
@@ -81,6 +84,19 @@ var Text = /** @class */ (function (_super) {
             // will be displayed as pseudo element.
             return (React.createElement("div", { style: this._getStyles(), "aria-hidden": isAriaHidden, onClick: this.props.onPress, onContextMenu: this.props.onContextMenu, "data-text-as-pseudo-element": this.props.children, id: this.props.id }));
         }
+    };
+    Text.prototype.componentDidMount = function () {
+        var _this = this;
+        this._isMounted = true;
+        var autoFocus = this.props.autoFocus;
+        if (autoFocus) {
+            AutoFocusHelper_1.requestFocus(autoFocus.id, this, autoFocus.focus || (function () { if (_this._isMounted) {
+                _this.focus();
+            } }));
+        }
+    };
+    Text.prototype.componentWillUnmount = function () {
+        this._isMounted = false;
     };
     Text.prototype._getStyles = function () {
         // There's no way in HTML to properly handle numberOfLines > 1,

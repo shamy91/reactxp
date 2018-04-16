@@ -23,6 +23,7 @@ var PropTypes = require("prop-types");
 var React = require("react");
 var RN = require("react-native");
 var AccessibilityUtil_1 = require("./AccessibilityUtil");
+var AutoFocusHelper_1 = require("../common/utils/AutoFocusHelper");
 var EventHelpers_1 = require("./utils/EventHelpers");
 var Styles_1 = require("./Styles");
 var _styles = {
@@ -63,6 +64,15 @@ var Text = /** @class */ (function (_super) {
         // The presence of any of the onPress or onContextMenu makes the RN.Text a potential touch responder
         var onPress = (this.props.onPress || this.props.onContextMenu) ? this._onPress : undefined;
         return (React.createElement(RN.Text, { style: this._getStyles(), ref: this._onMount, importantForAccessibility: importantForAccessibility, numberOfLines: this.props.numberOfLines, allowFontScaling: this.props.allowFontScaling, maxContentSizeMultiplier: this.props.maxContentSizeMultiplier, onPress: onPress, selectable: this.props.selectable, textBreakStrategy: 'simple', ellipsizeMode: this.props.ellipsizeMode }, this.props.children));
+    };
+    Text.prototype.componentDidMount = function () {
+        var _this = this;
+        var autoFocus = this.props.autoFocus;
+        if (autoFocus) {
+            AutoFocusHelper_1.requestFocus(autoFocus.id, this, autoFocus.focus || (function () { if (_this._mountedComponent) {
+                _this.focus();
+            } }));
+        }
     };
     Text.prototype.getChildContext = function () {
         // Let descendant RX components know that their nearest RX ancestor is an RX.Text.

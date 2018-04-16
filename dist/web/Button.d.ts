@@ -20,6 +20,7 @@ export declare class Button extends React.Component<Types.ButtonProps, {}> {
     static childContextTypes: {
         hasRxButtonAscendant: PropTypes.Requireable<any> & PropTypes.Validator<any>;
     };
+    private _isMounted;
     private _lastMouseDownEvent;
     private _ignoreClick;
     private _longPressTimer;
@@ -29,6 +30,8 @@ export declare class Button extends React.Component<Types.ButtonProps, {}> {
     constructor(props: Types.ButtonProps, context: ButtonContext);
     getChildContext(): ButtonContext;
     render(): JSX.Element;
+    componentDidMount(): void;
+    componentWillUnmount(): void;
     focus(): void;
     blur(): void;
     protected onClick: (e: Types.MouseEvent) => void;

@@ -16,11 +16,16 @@ export declare class TextInput extends React.Component<Types.TextInputProps, Tex
     private _mountedComponent;
     private _selectionStart;
     private _selectionEnd;
+    private _isFocused;
+    private _ariaLiveEnabled;
     constructor(props: Types.TextInputProps);
     componentWillReceiveProps(nextProps: Types.TextInputProps): void;
     componentDidMount(): void;
     render(): JSX.Element;
     private _onMount;
+    private _onInput;
+    private _onFocus;
+    private _onBlur;
     private _getKeyboardType();
     private _onPaste;
     private _onInputChanged;

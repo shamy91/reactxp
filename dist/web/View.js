@@ -32,6 +32,7 @@ var PropTypes = require("prop-types");
 var AccessibilityUtil_1 = require("./AccessibilityUtil");
 var AnimateListEdits_1 = require("./listAnimations/AnimateListEdits");
 var AppConfig_1 = require("../common/AppConfig");
+var AutoFocusHelper_1 = require("../common/utils/AutoFocusHelper");
 var restyleForInlineText = require("./utils/restyleForInlineText");
 var Styles_1 = require("./Styles");
 var Types = require("../common/Types");
@@ -317,6 +318,12 @@ var View = /** @class */ (function (_super) {
     View.prototype.componentDidMount = function () {
         var _this = this;
         _super.prototype.componentDidMount.call(this);
+        var autoFocus = this.props.autoFocus;
+        if (autoFocus) {
+            AutoFocusHelper_1.requestFocus(autoFocus.id, this, autoFocus.focus || (function () { if (_this._isMounted) {
+                _this.focus();
+            } }));
+        }
         // If we are mounted as visible, do our initialization now. If we are hidden, it will
         // be done later when the popup is shown.
         if (!this.isHidden()) {

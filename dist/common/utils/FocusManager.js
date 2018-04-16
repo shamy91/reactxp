@@ -107,6 +107,9 @@ var FocusManager = /** @class */ (function () {
         FocusManager._clearRestoreRestrictionTimeout();
         FocusManager._restrictionStack.push(this);
         FocusManager._currentRestrictionOwner = this;
+        if (!noFocusReset) {
+            this.resetFocus();
+        }
         Object.keys(FocusManager._allFocusableComponents).forEach(function (componentId) {
             if (!(componentId in _this._myFocusableComponentIds)) {
                 var storedComponent = FocusManager._allFocusableComponents[componentId];
@@ -114,9 +117,6 @@ var FocusManager = /** @class */ (function () {
                 _this._updateComponentFocusRestriction(storedComponent);
             }
         });
-        if (!noFocusReset) {
-            this.resetFocus();
-        }
     };
     FocusManager.prototype.removeFocusRestriction = function () {
         var _this = this;

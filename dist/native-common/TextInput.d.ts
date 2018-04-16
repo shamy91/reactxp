@@ -20,6 +20,7 @@ export declare class TextInput extends React.Component<Types.TextInputProps, Tex
     protected _mountedComponent: RN.ReactNativeBaseComponent<any, any> | null;
     constructor(props: Types.TextInputProps);
     componentWillReceiveProps(nextProps: Types.TextInputProps): void;
+    componentDidMount(): void;
     protected _render(props: RN.TextInputProps): JSX.Element;
     render(): JSX.Element;
     protected _onMount: (component: RN.ReactNativeBaseComponent<any, any> | null) => void;

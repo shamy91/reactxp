@@ -21,6 +21,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 var React = require("react");
 var RN = require("react-native");
 var AccessibilityUtil_1 = require("./AccessibilityUtil");
+var AutoFocusHelper_1 = require("../common/utils/AutoFocusHelper");
 var EventHelpers_1 = require("../native-common/utils/EventHelpers");
 var Styles_1 = require("../native-common/Styles");
 var _styles = {
@@ -87,6 +88,13 @@ var TextInput = /** @class */ (function (_super) {
         };
         return _this;
     }
+    TextInput.prototype.componentDidMount = function () {
+        var _this = this;
+        var autoFocus = this.props.autoFocus;
+        if (autoFocus) {
+            AutoFocusHelper_1.requestFocus(autoFocus.id, this, autoFocus.focus || (function () { return _this.focus; }));
+        }
+    };
     TextInput.prototype.componentWillReceiveProps = function (nextProps) {
         if (nextProps.value !== this.state.inputValue) {
             this.setState({
@@ -95,9 +103,9 @@ var TextInput = /** @class */ (function (_super) {
         }
     };
     TextInput.prototype.render = function () {
-        var editable = (this.props.editable !== undefined ? this.props.editable : true);
+        var editable = this.props.editable !== false;
         var blurOnSubmit = this.props.blurOnSubmit || !this.props.multiline;
-        return (React.createElement(RN.TextInput, { ref: this._onMount, multiline: this.props.multiline, style: Styles_1.default.combine([_styles.defaultTextInput, this.props.style]), value: this.state.inputValue, autoCorrect: this.props.autoCorrect, spellCheck: this.props.spellCheck, autoCapitalize: this.props.autoCapitalize, autoFocus: this.props.autoFocus, keyboardType: this.props.keyboardType, editable: editable, selectionColor: this.props.selectionColor, maxLength: this.props.maxLength, placeholder: this.props.placeholder, defaultValue: this.props.value, placeholderTextColor: this.props.placeholderTextColor, onSubmitEditing: this.props.onSubmitEditing, onKeyPress: this._onKeyPress, onChangeText: this._onChangeText, onSelectionChange: this._onSelectionChange, onFocus: this._onFocus, onBlur: this._onBlur, onScroll: this._onScroll, selection: { start: this._selectionStart, end: this._selectionEnd }, secureTextEntry: this.props.secureTextEntry, keyboardAppearance: this.props.keyboardAppearance, returnKeyType: this.props.returnKeyType, disableFullscreenUI: this.props.disableFullscreenUI, blurOnSubmit: blurOnSubmit, textBreakStrategy: 'simple', accessibilityLabel: this.props.accessibilityLabel, allowFontScaling: this.props.allowFontScaling, maxContentSizeMultiplier: this.props.maxContentSizeMultiplier, underlineColorAndroid: 'transparent' }));
+        return (React.createElement(RN.TextInput, { ref: this._onMount, multiline: this.props.multiline, style: Styles_1.default.combine([_styles.defaultTextInput, this.props.style]), value: this.state.inputValue, autoCorrect: this.props.autoCorrect, spellCheck: this.props.spellCheck, autoCapitalize: this.props.autoCapitalize, keyboardType: this.props.keyboardType, editable: editable, selectionColor: this.props.selectionColor, maxLength: this.props.maxLength, placeholder: this.props.placeholder, defaultValue: this.props.value, placeholderTextColor: this.props.placeholderTextColor, onSubmitEditing: this.props.onSubmitEditing, onKeyPress: this._onKeyPress, onChangeText: this._onChangeText, onSelectionChange: this._onSelectionChange, onFocus: this._onFocus, onBlur: this._onBlur, onScroll: this._onScroll, selection: { start: this._selectionStart, end: this._selectionEnd }, secureTextEntry: this.props.secureTextEntry, keyboardAppearance: this.props.keyboardAppearance, returnKeyType: this.props.returnKeyType, disableFullscreenUI: this.props.disableFullscreenUI, blurOnSubmit: blurOnSubmit, textBreakStrategy: 'simple', accessibilityLabel: this.props.accessibilityLabel, allowFontScaling: this.props.allowFontScaling, maxContentSizeMultiplier: this.props.maxContentSizeMultiplier, underlineColorAndroid: 'transparent' }));
     };
     TextInput.prototype.blur = function () {
         if (this._mountedComponent) {

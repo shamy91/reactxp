@@ -20,6 +20,7 @@ var __extends = (this && this.__extends) || (function () {
 Object.defineProperty(exports, "__esModule", { value: true });
 var ReactDOM = require("react-dom");
 var FocusManager_1 = require("../../common/utils/FocusManager");
+var AutoFocusHelper_1 = require("../../common/utils/AutoFocusHelper");
 var UserInterface_1 = require("../UserInterface");
 var ATTR_NAME_TAB_INDEX = 'tabindex';
 var ATTR_NAME_ARIA_HIDDEN = 'aria-hidden';
@@ -65,6 +66,7 @@ var FocusManager = /** @class */ (function (_super) {
             _checkFocusTimer = setTimeout(function () {
                 _checkFocusTimer = undefined;
                 if (_isNavigatingWithKeyboard &&
+                    (!FocusManager._currentFocusedComponent || !FocusManager._currentFocusedComponent.removed) &&
                     (!document.activeElement || (document.activeElement === document.body))) {
                     // This should work for Electron and the browser should
                     // send the focus to the address bar anyway.
@@ -104,8 +106,9 @@ var FocusManager = /** @class */ (function (_super) {
         }
         return ret;
     };
-    FocusManager.focusFirst = function (last) {
+    FocusManager._getFirstFocusable = function (last, parent) {
         var focusable = Object.keys(FocusManager._allFocusableComponents)
+            .filter(function (componentId) { return !parent || (componentId in parent._myFocusableComponentIds); })
             .map(function (componentId) { return FocusManager._allFocusableComponents[componentId]; })
             .filter(function (storedComponent) {
             return !storedComponent.removed &&
@@ -113,8 +116,8 @@ var FocusManager = /** @class */ (function (_super) {
                 storedComponent.limitedCount === 0 &&
                 storedComponent.limitedCountAccessible === 0;
         })
-            .map(function (storedComponent) { return ReactDOM.findDOMNode(storedComponent.component); })
-            .filter(function (el) { return el && el.focus && ((el.tabIndex || 0) >= 0); });
+            .map(function (storedComponent) { return { storedComponent: storedComponent, el: ReactDOM.findDOMNode(storedComponent.component) }; })
+            .filter(function (f) { return f.el && f.el.focus && ((f.el.tabIndex || 0) >= 0); });
         if (focusable.length) {
             focusable.sort(function (a, b) {
                 // Some element which is mounted later could come earlier in the DOM,
@@ -122,11 +125,21 @@ var FocusManager = /** @class */ (function (_super) {
                 if (a === b) {
                     return 0;
                 }
-                return a.compareDocumentPosition(b) & document.DOCUMENT_POSITION_PRECEDING ? 1 : -1;
+                return a.el.compareDocumentPosition(b.el) & document.DOCUMENT_POSITION_PRECEDING ? 1 : -1;
             });
-            var elementToFocus = focusable[last ? focusable.length - 1 : 0];
-            FocusManager.setLastFocusedProgrammatically(elementToFocus);
-            elementToFocus.focus();
+            return focusable[last ? focusable.length - 1 : 0];
+        }
+        return undefined;
+    };
+    FocusManager.focusFirst = function (last) {
+        var first = FocusManager._getFirstFocusable(last);
+        if (first && !first.storedComponent.removed && !first.storedComponent.restricted) {
+            AutoFocusHelper_1.requestFocus(AutoFocusHelper_1.FirstFocusableId, first.storedComponent.component, function () {
+                if (!first.storedComponent.removed) {
+                    FocusManager.setLastFocusedProgrammatically(first.el);
+                    first.el.focus();
+                }
+            });
         }
     };
     FocusManager.prototype.resetFocus = function () {
@@ -138,11 +151,15 @@ var FocusManager = /** @class */ (function (_super) {
             // When we're in the keyboard navigation mode, we want to have the
             // first focusable component to be focused straight away, without the
             // necessity to press Tab.
-            // Defer the focusing to let the view finish its initialization.
-            FocusManager._resetFocusTimer = setTimeout(function () {
-                FocusManager._resetFocusTimer = undefined;
-                FocusManager.focusFirst();
-            }, 0);
+            var first_1 = FocusManager._getFirstFocusable(false, FocusManager._currentRestrictionOwner);
+            if (first_1 && !first_1.storedComponent.removed && !first_1.storedComponent.restricted) {
+                AutoFocusHelper_1.requestFocus(AutoFocusHelper_1.FirstFocusableId, first_1.storedComponent.component, function () {
+                    if (!first_1.storedComponent.removed) {
+                        FocusManager.setLastFocusedProgrammatically(first_1.el);
+                        first_1.el.focus();
+                    }
+                });
+            }
         }
         else if ((typeof document !== 'undefined') && document.body && document.body.focus && document.body.blur) {
             // An example to explain this part:
@@ -160,18 +177,19 @@ var FocusManager = /** @class */ (function (_super) {
             // focusable, focusing it, removing the focus and making it unfocusable
             // back again.
             // Defer the work to avoid triggering sync layout.
+            var currentFocused = FocusManager._currentFocusedComponent;
+            if (currentFocused && !currentFocused.removed && !currentFocused.restricted) {
+                // No need to reset the focus because it's moved inside the restricted area
+                // already (manually or with autofocus).
+                return;
+            }
             FocusManager._resetFocusTimer = setTimeout(function () {
                 FocusManager._resetFocusTimer = undefined;
-                var prevTabIndex = FocusManager._setTabIndex(document.body, 0);
-                var activeElement = document.activeElement;
+                var prevTabIndex = FocusManager._setTabIndex(document.body, -1);
                 FocusManager.setLastFocusedProgrammatically(document.body);
                 document.body.focus();
                 document.body.blur();
                 FocusManager._setTabIndex(document.body, prevTabIndex);
-                if (activeElement instanceof HTMLElement) {
-                    FocusManager.setLastFocusedProgrammatically(activeElement);
-                    activeElement.focus();
-                }
             }, 0);
         }
     };
@@ -258,6 +276,32 @@ var FocusManager = /** @class */ (function (_super) {
             element.setAttribute(ATTR_NAME_ARIA_HIDDEN, value);
         }
         return prev;
+    };
+    FocusManager.sortAndFilterAutoFocusCandidates = function (candidates) {
+        return candidates
+            .filter(function (candidate) {
+            var id = candidate.component.focusableComponentId;
+            if (id) {
+                var storedComponent = FocusManager._allFocusableComponents[id];
+                if (storedComponent && (storedComponent.removed ||
+                    storedComponent.restricted ||
+                    storedComponent.limitedCount > 0 ||
+                    storedComponent.limitedCountAccessible > 0)) {
+                    return false;
+                }
+            }
+            return true;
+        })
+            .map(function (candidate) { return { candidate: candidate, el: ReactDOM.findDOMNode(candidate.component) }; })
+            .sort(function (a, b) {
+            // Some element which is mounted later could come earlier in the DOM,
+            // so, we sort the elements by their appearance in the DOM.
+            if (a === b) {
+                return 0;
+            }
+            return a.el.compareDocumentPosition(b.el) & document.DOCUMENT_POSITION_PRECEDING ? 1 : -1;
+        })
+            .map(function (ce) { return ce.candidate; });
     };
     return FocusManager;
 }(FocusManager_1.FocusManager));

@@ -35,6 +35,7 @@ import { Button as ButtonImpl } from './Button';
 import { Picker as PickerImpl } from './Picker';
 import { Image as ImageImpl } from './Image';
 import ClipboardImpl from './Clipboard';
+import FocusUtilsImpl from '../common/FocusUtils';
 import { GestureView as GestureViewImpl } from './GestureView';
 import InputImpl from './Input';
 import InternationalImpl from './International';
@@ -57,6 +58,11 @@ import ViewImpl from './View';
 import { ViewBase } from './ViewBase';
 import { WebView as WebViewImpl } from './WebView';
 
+// Initialize AutofocusHelper.
+import FocusManager from './utils/FocusManager';
+import { setSortAndFilterFunc } from '../common/utils/AutoFocusHelper';
+setSortAndFilterFunc(FocusManager.sortAndFilterAutoFocusCandidates);
+
 // -- STRANGE THINGS GOING ON HERE --
 //
 // 1) 'export type Foo = FooImpl; export var Foo = FooImpl;'
@@ -78,6 +84,8 @@ module ReactXP {
     export var Picker: typeof RXInterfaces.Picker = PickerImpl;
     export type Clipboard = RXInterfaces.Clipboard;
     export var Clipboard: RXInterfaces.Clipboard = ClipboardImpl;
+    export type FocusUtils = RXInterfaces.FocusUtils;
+    export var FocusUtils: RXInterfaces.FocusUtils = FocusUtilsImpl;
     export type GestureView = RXInterfaces.GestureView;
     export var GestureView: typeof RXInterfaces.GestureView = GestureViewImpl;
     export type Image = RXInterfaces.Image;

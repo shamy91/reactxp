@@ -12,6 +12,7 @@ import ReactDOM = require('react-dom');
 import PropTypes = require('prop-types');
 
 import AccessibilityUtil from './AccessibilityUtil';
+import { requestFocus } from '../common/utils/AutoFocusHelper';
 import AppConfig from '../common/AppConfig';
 import Styles from './Styles';
 import Types = require('../common/Types');
@@ -58,6 +59,7 @@ export class Button extends React.Component<Types.ButtonProps, {}> {
         hasRxButtonAscendant: PropTypes.bool
     };
 
+    private _isMounted = false;
     private _lastMouseDownEvent: Types.SyntheticEvent|undefined;
     private _ignoreClick = false;
     private _longPressTimer: number|undefined;
@@ -118,15 +120,28 @@ export class Button extends React.Component<Types.ButtonProps, {}> {
         );
     }
 
+    componentDidMount() {
+        this._isMounted = true;
+
+        const autoFocus = this.props.autoFocus;
+        if (autoFocus) {
+            requestFocus(autoFocus.id, this, autoFocus.focus || (() => { if (this._isMounted) { this.focus(); } }));
+        }
+    }
+
+    componentWillUnmount() {
+        this._isMounted = false;
+    }
+
     focus() {
-        let el = ReactDOM.findDOMNode(this) as HTMLElement;
+        let el = ReactDOM.findDOMNode(this) as HTMLButtonElement;
         if (el) {
             el.focus();
         }
     }
 
     blur() {
-        let el = ReactDOM.findDOMNode(this) as HTMLInputElement;
+        let el = ReactDOM.findDOMNode(this) as HTMLButtonElement;
         if (el) {
             el.blur();
         }
