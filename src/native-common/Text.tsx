@@ -8,10 +8,12 @@
 */
 
 import _ = require('./lodashMini');
+import PropTypes = require('prop-types');
 import React = require('react');
 import RN = require('react-native');
 
 import AccessibilityUtil from './AccessibilityUtil';
+import EventHelpers from './utils/EventHelpers';
 import Styles from './Styles';
 import Types = require('../common/Types');
 
@@ -21,31 +23,68 @@ const _styles = {
     })
 };
 
-export class Text extends React.Component<Types.TextProps, {}> {
+export interface TextContext {
+    isRxParentAText?: boolean;
+}
+
+export class Text extends React.Component<Types.TextProps, {}> implements React.ChildContextProvider<TextContext> {
+    static childContextTypes: React.ValidationMap<any> = {
+        isRxParentAText: PropTypes.bool.isRequired,
+    };
+    protected _mountedComponent: RN.ReactNativeBaseComponent<any, any>|null = null;
+
     // To be able to use Text inside TouchableHighlight/TouchableOpacity
     public setNativeProps(nativeProps: RN.TextProps) {
-        (this.refs['nativeText'] as any).setNativeProps(nativeProps);
+        if (this._mountedComponent) {
+            this._mountedComponent.setNativeProps(nativeProps);
+        }
     }
 
     render() {
         const importantForAccessibility = AccessibilityUtil.importantForAccessibilityToString(this.props.importantForAccessibility);
+
+        // The presence of any of the onPress or onContextMenu makes the RN.Text a potential touch responder
+        const onPress = (this.props.onPress || this.props.onContextMenu) ? this._onPress : undefined;
+
         return (
             <RN.Text
                 style={ this._getStyles() }
-                ref='nativeText'
+                ref={ this._onMount }
                 importantForAccessibility={ importantForAccessibility }
                 numberOfLines={ this.props.numberOfLines }
                 allowFontScaling={ this.props.allowFontScaling }
                 maxContentSizeMultiplier={ this.props.maxContentSizeMultiplier }
-                onPress={ this.props.onPress }
+                onPress={ onPress }
                 selectable={ this.props.selectable }
                 textBreakStrategy={ 'simple' }
                 ellipsizeMode={ this.props.ellipsizeMode }
-                elevation={ this.props.elevation }
             >
                 { this.props.children }
             </RN.Text>
         );
+    }
+
+    protected _onMount = (component: RN.ReactNativeBaseComponent<any, any>|null) => {
+        this._mountedComponent = component;
+    }
+
+    private _onPress = (e: RN.SyntheticEvent<any>) => {
+        if (EventHelpers.isRightMouseButton(e)) {
+            if (this.props.onContextMenu) {
+                this.props.onContextMenu(EventHelpers.toMouseEvent(e));
+            }
+        } else {
+            if (this.props.onPress) {
+                this.props.onPress(EventHelpers.toMouseEvent(e));
+            }
+        }
+    }
+
+    getChildContext() {
+        // Let descendant RX components know that their nearest RX ancestor is an RX.Text.
+        // Because they're in an RX.Text, they should style themselves specially for appearing
+        // inline with text.
+        return { isRxParentAText: true };
     }
 
     protected _getStyles(): Types.StyleRuleSetRecursiveArray<Types.TextStyleRuleSet> {

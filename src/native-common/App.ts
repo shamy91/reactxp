@@ -14,12 +14,14 @@ import RX = require('../common/Interfaces');
 import Types = require('../common/Types');
 
 const _rnStateToRxState: {[key: string]: Types.AppActivationState} = {
+    'unknown': Types.AppActivationState.Active,
     'active': Types.AppActivationState.Active,
     'background': Types.AppActivationState.Background,
     'inactive': Types.AppActivationState.Inactive,
     'extension': Types.AppActivationState.Extension,
     // uninitialized means in Background on android since last change I did
     'uninitialized': Types.AppActivationState.Background
+
 };
 
 export class App extends RX.App {
@@ -39,11 +41,15 @@ export class App extends RX.App {
     initialize(debug: boolean, development: boolean) {
         super.initialize(debug, development);
         window['rxdebug'] = debug;
-        RN.AppRegistry.registerComponent('RXApp', () => RootView);
+        RN.AppRegistry.registerComponent('RXApp', this.getRootViewFactory());
     }
 
     getActivationState(): Types.AppActivationState {
-        return _rnStateToRxState[RN.AppState.currentState];
+        return _rnStateToRxState[RN.AppState.currentState] || Types.AppActivationState.Active;
+    }
+
+    protected getRootViewFactory(): RN.ComponentProvider {
+        return () => RootView;
     }
 }
 

@@ -43,13 +43,6 @@ export abstract class AnimatedView extends AnimatedComponent<Types.AnimatedViewP
     abstract setFocusLimited(limited: boolean): void;
 }
 
-export interface IAnimatedValue {
-    setValue(value: number): void;
-
-    // NOTE: interpolate is deprecated. Use RX.Animated.interpolate instead.
-    interpolate(config: any): IAnimatedValue;
-}
-
 export abstract class App {
     // Initialization
     initialize(debug: boolean, development: boolean): void {
@@ -99,7 +92,7 @@ export abstract class UserInterface {
 }
 
 export abstract class Modal {
-    abstract isDisplayed(modalId: string): boolean;
+    abstract isDisplayed(modalId?: string): boolean;
     abstract show(modal: React.ReactElement<Types.ViewProps>, modalId: string, options?: Types.ModalOptions): void;
     abstract dismiss(modalId: string): void;
     abstract dismissAll(): void;
@@ -110,6 +103,7 @@ export abstract class Popup {
     abstract autoDismiss(popupId: string, delay?: number): void;
     abstract dismiss(popupId: string): void;
     abstract dismissAll(): void;
+    abstract isDisplayed(popupId?: string): boolean;
 }
 
 export abstract class Linking {
@@ -189,18 +183,19 @@ export abstract class Network {
 
 export abstract class Platform {
     abstract getType(): Types.PlatformType;
+    abstract select<T>(specifics: { [ platform in Types.PlatformType | 'default' ]?: T }): T | undefined;
 }
 
 export abstract class Input {
     backButtonEvent = new SubscribableEvent<() => boolean>(true);
-    keyDownEvent = new SubscribableEvent<(e: Types.KeyboardEvent) => boolean>();
-    keyUpEvent = new SubscribableEvent<(e: Types.KeyboardEvent) => boolean>();
+    keyDownEvent = new SubscribableEvent<(e: Types.KeyboardEvent) => boolean>(true);
+    keyUpEvent = new SubscribableEvent<(e: Types.KeyboardEvent) => boolean>(true);
 }
 
 export interface ScrollViewConstructor {
     new(props: Types.ScrollViewProps): ScrollView;
 }
-    
+
 export interface ScrollView extends React.Component<Types.ScrollViewProps, any> {
     setScrollTop(scrollTop: number, animate?: boolean): void;
     setScrollLeft(scrollLeft: number, animate?: boolean): void;
@@ -240,6 +235,10 @@ export abstract class Styles {
     abstract createAnimatedImageStyle(ruleSet: Types.AnimatedImageStyle): Types.AnimatedImageStyleRuleSet;
     abstract createLinkStyle(ruleSet: Types.LinkStyleRuleSet, cacheStyle?: boolean): Types.LinkStyleRuleSet;
     abstract createPickerStyle(ruleSet: Types.PickerStyle, cacheStyle?: boolean): Types.PickerStyleRuleSet;
+
+    // This method isn't part of the documented ReactXP interface and shouldn't be used by
+    // app-level code, but it is needed for some ReactXP extensions (e.g. reactxp-imagesvg),
+    // so we export it here.
     abstract getCssPropertyAliasesCssStyle(): {[key: string]: string};
 }
 
@@ -300,11 +299,9 @@ export interface Animated {
     parallel: Types.Animated.ParallelFunction;
     sequence: Types.Animated.SequenceFunction;
 
-    // Note: Access to Value is deprecated. Move to createValue
-    // and interpolate instead.
     Value: typeof Types.AnimatedValue;
     createValue: (initialValue: number) => Types.AnimatedValue;
-    interpolate: (value: Types.AnimatedValue, inputRange: number[], outputRange: string[]) => Types.AnimatedValue;
+    interpolate: (value: Types.AnimatedValue, inputRange: number[], outputRange: string[]) => Types.InterpolatedValue;
 }
 
 export interface International {

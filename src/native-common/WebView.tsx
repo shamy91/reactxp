@@ -7,6 +7,7 @@
 * A control that allows the display of an independent web page.
 */
 
+import _ = require('./lodashMini');
 import React = require('react');
 import RN = require('react-native');
 
@@ -21,19 +22,26 @@ const _styles = {
     })
 };
 
-const WEBVIEW_REF = 'webview';
-
 export class WebView extends RX.ViewBase<Types.WebViewProps, {}> implements RX.WebView {
+    private _mountedComponent: RN.WebView|null = null;
+
     render() {
         let styles = [_styles.webViewDefault, this.props.style];
+        let source: any = this.props.source;
+        if (this.props.url) {
+            source = {
+                uri: this.props.url,
+                headers: this.props.headers
+            };
+        }
 
         return (
             <RN.WebView
-                ref= { WEBVIEW_REF }
+                ref={ this._onMount }
                 style={ styles }
                 onNavigationStateChange={ this.props.onNavigationStateChange }
                 onShouldStartLoadWithRequest={ this.props.onShouldStartLoadWithRequest }
-                source={ { uri: this.props.url, headers: this.props.headers } }
+                source={ source }
                 onLoad={ this.props.onLoad }
                 startInLoadingState={ this.props.startInLoadingState }
                 javaScriptEnabled={ this.props.javaScriptEnabled }
@@ -42,32 +50,61 @@ export class WebView extends RX.ViewBase<Types.WebViewProps, {}> implements RX.W
                 scalesPageToFit={ this.props.scalesPageToFit }
                 onError={ this.props.onError }
                 onLoadStart={ this.props.onLoadStart }
+                onMessage={ this.props.onMessage ? this._onMessage : undefined }
             />
         );
     }
 
+    protected _onMount = (component: RN.ReactNativeBaseComponent<any, any>|null) => {
+        this._mountedComponent = component as RN.WebView;
+    }
+
+    protected _onMessage = (e: RN.SyntheticEvent<any>) => {
+        if (this.props.onMessage) {
+            // Clone the original event because RN reuses events.
+            let event: RX.Types.WebViewMessageEvent = _.clone(e) as any;
+            
+            // Add the data element.
+            event.data = (e.nativeEvent as any).data;
+            event.origin = '*';
+
+            event.stopPropagation = () => {
+                if (e.stopPropagation) {
+                    e.stopPropagation();
+                }
+            };
+
+            event.preventDefault = () => {
+                if (e.preventDefault) {
+                    e.preventDefault();
+                }
+            };
+            
+            this.props.onMessage(event);
+        }
+    }
+
     postMessage(message: string, targetOrigin: string = '*') {
-        // Not Implemented...
+        if (this._mountedComponent) {
+            this._mountedComponent.postMessage(message);
+        }
     }
         
     reload() {
-        const webView : RN.WebView = this.refs[WEBVIEW_REF] as RN.WebView;
-        if (webView) {
-            webView.reload();
+        if (this._mountedComponent) {
+            this._mountedComponent.reload();
         }
     }
 
     goBack() {
-        const webView : RN.WebView = this.refs[WEBVIEW_REF] as RN.WebView;
-        if (webView) {
-            webView.goBack();
+        if (this._mountedComponent) {
+            this._mountedComponent.goBack();
         }
     }
     
     goForward() {
-        const webView : RN.WebView = this.refs[WEBVIEW_REF] as RN.WebView;
-        if (webView) {
-            webView.goForward();
+        if (this._mountedComponent) {
+            this._mountedComponent.goForward();
         }
     }
 }

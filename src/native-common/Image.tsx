@@ -7,6 +7,7 @@
 * RN-specific implementation of the cross-platform Image abstraction.
 */
 
+import PropTypes = require('prop-types');
 import React = require('react');
 import RN = require('react-native');
 import SyncTasks = require('synctasks');
@@ -24,7 +25,15 @@ const _styles = {
     })
 };
 
-export class Image extends React.Component<Types.ImageProps, {}> {
+export interface ImageContext {
+    isRxParentAText?: boolean;
+}
+
+export class Image extends React.Component<Types.ImageProps, {}> implements React.ChildContextProvider<ImageContext> {
+    static childContextTypes: React.ValidationMap<any> = {
+        isRxParentAText: PropTypes.bool.isRequired,
+    };
+
     static prefetch(url: string): SyncTasks.Promise<boolean> {
         const defer = SyncTasks.Defer<boolean>();
 
@@ -37,20 +46,12 @@ export class Image extends React.Component<Types.ImageProps, {}> {
         return defer.promise();
     }
 
-    private _isMounted = false;
+    protected _mountedComponent: RN.ReactNativeBaseComponent<any, any>|null = null;
     private _nativeImageWidth: number|undefined;
     private _nativeImageHeight: number|undefined;
 
     protected _getAdditionalProps(): RN.ImageProperties | {} {
         return {};
-    }
-
-    componentDidMount() {
-        this._isMounted = true;
-    }
-
-    componentWillUnmount() {
-        this._isMounted = false;
     }
 
     render() {
@@ -80,11 +81,11 @@ export class Image extends React.Component<Types.ImageProps, {}> {
 
         return (
             <RN.Image
-                ref='nativeImage'
+                ref={ this._onMount }
                 style={ this.getStyles() }
                 source={ imageSource }
                 resizeMode={ resizeMode }
-                resizeMethod= { this.props.resizeMethod }
+                resizeMethod={ this.props.resizeMethod }
                 accessibilityLabel={ this.props.accessibilityLabel }
                 onLoad={ this.props.onLoad ? this._onLoad : undefined }
                 onError={ this._onError }
@@ -96,8 +97,21 @@ export class Image extends React.Component<Types.ImageProps, {}> {
         );
     }
 
+    protected _onMount = (component: RN.ReactNativeBaseComponent<any, any>|null) => {
+        this._mountedComponent = component;
+    }
+
     public setNativeProps(nativeProps: RN.ImageProperties) {
-        (this.refs['nativeImage'] as RN.Image).setNativeProps(nativeProps);
+        if (this._mountedComponent) {
+            this._mountedComponent.setNativeProps(nativeProps);
+        }
+    }
+
+    getChildContext() {
+        // Let descendant RX components know that their nearest RX ancestor is not an RX.Text.
+        // Because they're in an RX.View/etc, they should use their normal styling rather than their
+        // special styling for appearing inline with text.
+        return { isRxParentAText: false };
     }
 
     protected getStyles() {
@@ -105,7 +119,7 @@ export class Image extends React.Component<Types.ImageProps, {}> {
     }
 
     private _onLoad = (e: React.SyntheticEvent<Image>) => {
-        if (!this._isMounted) {
+        if (!this._mountedComponent) {
             return;
         }
 
@@ -119,7 +133,7 @@ export class Image extends React.Component<Types.ImageProps, {}> {
     }
 
     private _onError = (e: React.SyntheticEvent<Image>) => {
-        if (!this._isMounted) {
+        if (!this._mountedComponent) {
             return;
         }
 

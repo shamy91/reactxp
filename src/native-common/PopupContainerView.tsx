@@ -14,6 +14,7 @@ import assert = require('assert');
 import React = require('react');
 import RN = require('react-native');
 
+import International from './International';
 import Types = require('../common/Types');
 
 // Width of the "alley" around popups so they don't get too close to the boundary of the screen boundary.
@@ -24,9 +25,10 @@ const ALLEY_WIDTH = 2;
 const MIN_ANCHOR_OFFSET = 16;
 
 export interface PopupContainerViewProps extends Types.CommonProps {
-    activePopupOptions: Types.PopupOptions;
-    anchorHandle: number;
+    popupOptions: Types.PopupOptions;
+    anchorHandle?: number;
     onDismissPopup?: () => void;
+    hidden: boolean;
 }
 
 export interface PopupContainerViewState {
@@ -44,8 +46,8 @@ export interface PopupContainerViewState {
     anchorOffset: number;
 
     // Absolute window location of the popup
-    popupTop: number;
-    popupLeft: number;
+    popupY: number;
+    popupX: number;
 
     // Constrained dimensions of the popup once it is placed
     constrainedPopupWidth: number;
@@ -53,8 +55,8 @@ export interface PopupContainerViewState {
 }
 
 export class PopupContainerView extends React.Component<PopupContainerViewProps, PopupContainerViewState> {
-    private _isMounted: boolean = false;
-    private _viewHandle: number = 0;
+    private _mountedComponent: RN.View|null = null;
+    private _viewHandle: number | null = null;
     private _respositionPopupTimer: number|undefined;
 
     constructor(props: PopupContainerViewProps) {
@@ -67,8 +69,8 @@ export class PopupContainerView extends React.Component<PopupContainerViewProps,
             isMeasuringPopup: true,
             anchorPosition: 'left',
             anchorOffset: 0,
-            popupTop: 0,
-            popupLeft: 0,
+            popupY: 0,
+            popupX: 0,
             popupWidth: 0,
             popupHeight: 0,
             constrainedPopupWidth: 0,
@@ -77,14 +79,14 @@ export class PopupContainerView extends React.Component<PopupContainerViewProps,
     }
 
     componentWillReceiveProps(prevProps: PopupContainerViewProps) {
-        if (this.props.activePopupOptions !== prevProps.activePopupOptions) {
+        if (this.props.popupOptions !== prevProps.popupOptions) {
             // If the popup changes, reset our state.
             this.setState(this._getInitialState());
         }
     }
 
     componentDidUpdate(prevProps: PopupContainerViewProps, prevState: PopupContainerViewState) {
-        if (this.props.activePopupOptions) {
+        if (this.props.popupOptions && !this.props.hidden) {
             this._recalcPosition();
 
             if (!this._respositionPopupTimer) {
@@ -96,32 +98,32 @@ export class PopupContainerView extends React.Component<PopupContainerViewProps,
     }
 
     componentDidMount () {
-        this._viewHandle = RN.findNodeHandle(this.refs['popupContainerView']);
-        this._isMounted = true;
+        this._viewHandle = RN.findNodeHandle(this._mountedComponent);
 
-        if (this.props.activePopupOptions) {
+        if (this.props.popupOptions && !this.props.hidden) {
             this._recalcPosition();
-        }
-
-        if (this.props.activePopupOptions) {
             this._startRepositionPopupTimer();
         }
     }
 
     componentWillUnmount() {
-        this._isMounted = false;
         this._stopRepositionPopupTimer();
     }
 
     render() {
-        var popupView = this.props.activePopupOptions.renderPopup(
-            this.state.anchorPosition, this.state.anchorOffset,
-            this.state.constrainedPopupWidth, this.state.constrainedPopupHeight);
-
+        const popupView = (this.props.hidden ?
+            this.props.popupOptions.renderPopup('top', 0, 0, 0) :
+            this.props.popupOptions.renderPopup(
+                this.state.anchorPosition, this.state.anchorOffset,
+                this.state.constrainedPopupWidth,
+                this.state.constrainedPopupHeight)
+            );
+        const isRTL = International.isRTL();
         const style = {
-            flex: 0,
-            top: this.state.popupTop,
-            left: this.state.popupLeft,
+            position: 'absolute',
+            top: this.state.popupY,
+            right: isRTL ? this.state.popupX : undefined,
+            left: !isRTL ? this.state.popupX : undefined,
             alignItems: 'flex-start',
             alignSelf: 'flex-start',
             opacity: this.state.isMeasuringPopup ? 0 : 1,
@@ -131,23 +133,27 @@ export class PopupContainerView extends React.Component<PopupContainerViewProps,
         return (
             <RN.View
                 style={ style }
-                ref='popupContainerView'
+                ref={ this.props.hidden ? undefined : this._onMount }
             >
-                {popupView}
+                { popupView }
             </RN.View>
         );
     }
 
+    protected _onMount = (component: RN.ReactNativeBaseComponent<any, any>|null) => {
+        this._mountedComponent = component;
+    }
+
     private _recalcPosition() {
-        if (!this._isMounted) {
+        if (!this._mountedComponent) {
             return;
         }
 
         assert.ok(!!this.props.anchorHandle);
         RN.NativeModules.UIManager.measureInWindow(
             this.props.anchorHandle,
-            (x: number, y: number, width: number, height: number, pageX: number, pageY: number) => {
-                if (!this._isMounted) {
+            (x: number, y: number, width: number, height: number) => {
+                if (!this._mountedComponent) {
                     return;
                 }
 
@@ -159,7 +165,7 @@ export class PopupContainerView extends React.Component<PopupContainerViewProps,
 
                 RN.NativeModules.UIManager.measureInWindow(
                     this._viewHandle,
-                    (x: number, y: number, width: number, height: number, pageX: number, pageY: number) => {
+                    (x: number, y: number, width: number, height: number) => {
                         let popupRect: ClientRect = {
                             left: x, top: y, right: x + width, bottom: y + height,
                             width: width, height: height
@@ -206,12 +212,12 @@ export class PopupContainerView extends React.Component<PopupContainerViewProps,
                 return;
             }
 
-            let positionsToTry = this.props.activePopupOptions.positionPriorities;
+            let positionsToTry = this.props.popupOptions.positionPriorities;
             if (!positionsToTry || positionsToTry.length === 0) {
                 positionsToTry = ['bottom', 'right', 'top', 'left'];
             }
 
-            if (this.props.activePopupOptions.useInnerPositioning) {
+            if (this.props.popupOptions.useInnerPositioning) {
                 // If the popup is meant to be shown inside the anchor we need to recalculate
                 // the position differently.
                 this._recalcInnerPosition(anchorRect, newState);
@@ -223,16 +229,16 @@ export class PopupContainerView extends React.Component<PopupContainerViewProps,
 
             positionsToTry.forEach(pos => {
                 if (!foundPerfectFit) {
-                    let absLeft = 0;
-                    let absTop = 0;
+                    let absX = 0;
+                    let absY = 0;
                     let anchorOffset = 0;
                     let constrainedWidth = 0;
                     let constrainedHeight = 0;
 
                     switch (pos) {
                         case 'bottom':
-                            absTop = anchorRect.bottom;
-                            absLeft = anchorRect.left + (anchorRect.width - newState.popupWidth) / 2;
+                            absY = anchorRect.bottom;
+                            absX = anchorRect.left + (anchorRect.width - newState.popupWidth) / 2;
                             anchorOffset = newState.popupWidth / 2;
 
                             if (newState.popupHeight <= windowHeight - ALLEY_WIDTH - anchorRect.bottom) {
@@ -243,8 +249,8 @@ export class PopupContainerView extends React.Component<PopupContainerViewProps,
                             break;
 
                         case 'top':
-                            absTop = anchorRect.top - newState.popupHeight;
-                            absLeft = anchorRect.left + (anchorRect.width - newState.popupWidth) / 2;
+                            absY = anchorRect.top - newState.popupHeight;
+                            absX = anchorRect.left + (anchorRect.width - newState.popupWidth) / 2;
                             anchorOffset = newState.popupWidth / 2;
 
                             if (newState.popupHeight <= anchorRect.top - ALLEY_WIDTH) {
@@ -255,8 +261,8 @@ export class PopupContainerView extends React.Component<PopupContainerViewProps,
                             break;
 
                         case 'right':
-                            absLeft = anchorRect.right;
-                            absTop = anchorRect.top + (anchorRect.height - newState.popupHeight) / 2;
+                            absX = anchorRect.right;
+                            absY = anchorRect.top + (anchorRect.height - newState.popupHeight) / 2;
                             anchorOffset = newState.popupHeight / 2;
 
                             if (newState.popupWidth <= windowWidth - ALLEY_WIDTH - anchorRect.right) {
@@ -267,8 +273,8 @@ export class PopupContainerView extends React.Component<PopupContainerViewProps,
                             break;
 
                         case 'left':
-                            absLeft = anchorRect.left - newState.popupWidth;
-                            absTop = anchorRect.top + (anchorRect.height - newState.popupHeight) / 2;
+                            absX = anchorRect.left - newState.popupWidth;
+                            absY = anchorRect.top + (anchorRect.height - newState.popupHeight) / 2;
                             anchorOffset = newState.popupHeight / 2;
 
                             if (newState.popupWidth <= anchorRect.left - ALLEY_WIDTH) {
@@ -283,45 +289,45 @@ export class PopupContainerView extends React.Component<PopupContainerViewProps,
                     let effectiveHeight = constrainedHeight || newState.popupHeight;
 
                     // Make sure we're not hanging off the bounds of the window.
-                    if (absLeft < ALLEY_WIDTH) {
+                    if (absX < ALLEY_WIDTH) {
                         if (pos === 'top' || pos === 'bottom') {
-                            anchorOffset -= ALLEY_WIDTH - absLeft;
+                            anchorOffset -= ALLEY_WIDTH - absX;
                             if (anchorOffset < MIN_ANCHOR_OFFSET || anchorOffset > effectiveWidth - MIN_ANCHOR_OFFSET) {
                                 foundPerfectFit = false;
                             }
                         }
-                        absLeft = ALLEY_WIDTH;
-                    } else if (absLeft > windowWidth - ALLEY_WIDTH - effectiveWidth) {
+                        absX = ALLEY_WIDTH;
+                    } else if (absX > windowWidth - ALLEY_WIDTH - effectiveWidth) {
                         if (pos === 'top' || pos === 'bottom') {
-                            anchorOffset -= (windowWidth - ALLEY_WIDTH - effectiveWidth - absLeft);
+                            anchorOffset -= (windowWidth - ALLEY_WIDTH - effectiveWidth - absX);
                             if (anchorOffset < MIN_ANCHOR_OFFSET || anchorOffset > effectiveWidth - MIN_ANCHOR_OFFSET) {
                                 foundPerfectFit = false;
                             }
                         }
-                        absLeft = windowWidth - ALLEY_WIDTH - effectiveWidth;
+                        absX = windowWidth - ALLEY_WIDTH - effectiveWidth;
                     }
 
-                    if (absTop < ALLEY_WIDTH) {
+                    if (absY < ALLEY_WIDTH) {
                         if (pos === 'right' || pos === 'left') {
-                            anchorOffset += absTop - ALLEY_WIDTH;
+                            anchorOffset += absY - ALLEY_WIDTH;
                             if (anchorOffset < MIN_ANCHOR_OFFSET || anchorOffset > effectiveHeight - MIN_ANCHOR_OFFSET) {
                                 foundPerfectFit = false;
                             }
                         }
-                        absTop = ALLEY_WIDTH;
-                    } else if (absTop > windowHeight - ALLEY_WIDTH - effectiveHeight) {
+                        absY = ALLEY_WIDTH;
+                    } else if (absY > windowHeight - ALLEY_WIDTH - effectiveHeight) {
                         if (pos === 'right' || pos === 'left') {
-                            anchorOffset -= (windowHeight - ALLEY_WIDTH - effectiveHeight - absTop);
+                            anchorOffset -= (windowHeight - ALLEY_WIDTH - effectiveHeight - absY);
                             if (anchorOffset < MIN_ANCHOR_OFFSET || anchorOffset > effectiveHeight - MIN_ANCHOR_OFFSET) {
                                 foundPerfectFit = false;
                             }
                         }
-                        absTop = windowHeight - ALLEY_WIDTH - effectiveHeight;
+                        absY = windowHeight - ALLEY_WIDTH - effectiveHeight;
                     }
 
                     if (foundPerfectFit || effectiveHeight > 0 || effectiveWidth > 0) {
-                        newState.popupTop = absTop;
-                        newState.popupLeft = absLeft;
+                        newState.popupY = absY;
+                        newState.popupX = absX;
                         newState.anchorOffset = anchorOffset;
                         newState.anchorPosition = pos;
                         newState.constrainedPopupWidth = effectiveWidth;
@@ -340,30 +346,30 @@ export class PopupContainerView extends React.Component<PopupContainerViewProps,
 
     private _recalcInnerPosition(anchorRect: ClientRect, newState: PopupContainerViewState) {
         // For inner popups we only accept the first position of the priorities since there should always be room for the bubble.
-        const pos = this.props.activePopupOptions.positionPriorities!!![0];
+        const pos = this.props.popupOptions.positionPriorities!!![0];
 
         switch (pos) {
             case 'top':
-                newState.popupTop = anchorRect.top + anchorRect.height - newState.constrainedPopupHeight;
-                newState.popupLeft = anchorRect.left + anchorRect.height / 2 - newState.constrainedPopupWidth / 2;
+                newState.popupY = anchorRect.top + anchorRect.height - newState.constrainedPopupHeight;
+                newState.popupX = anchorRect.left + anchorRect.height / 2 - newState.constrainedPopupWidth / 2;
                 newState.anchorOffset = newState.popupWidth / 2;
                 break;
 
             case 'bottom':
-                newState.popupTop = anchorRect.top + newState.constrainedPopupHeight;
-                newState.popupLeft = anchorRect.left + anchorRect.height / 2 - newState.constrainedPopupWidth / 2;
+                newState.popupY = anchorRect.top + newState.constrainedPopupHeight;
+                newState.popupX = anchorRect.left + anchorRect.height / 2 - newState.constrainedPopupWidth / 2;
                 newState.anchorOffset = newState.popupWidth / 2;
                 break;
 
             case 'left':
-                newState.popupTop = anchorRect.top + anchorRect.height / 2 - newState.constrainedPopupHeight / 2;
-                newState.popupLeft = anchorRect.left + anchorRect.width - newState.constrainedPopupWidth;
+                newState.popupY = anchorRect.top + anchorRect.height / 2 - newState.constrainedPopupHeight / 2;
+                newState.popupX = anchorRect.left + anchorRect.width - newState.constrainedPopupWidth;
                 newState.anchorOffset = newState.popupHeight / 2;
                 break;
 
             case 'right':
-                newState.popupTop = anchorRect.top + anchorRect.height / 2 - newState.constrainedPopupHeight / 2;
-                newState.popupLeft = anchorRect.left;
+                newState.popupY = anchorRect.top + anchorRect.height / 2 - newState.constrainedPopupHeight / 2;
+                newState.popupX = anchorRect.left;
                 newState.anchorOffset = newState.popupHeight / 2;
                 break;
         }

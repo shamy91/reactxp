@@ -34,7 +34,7 @@ declare module 'react-native' {
     interface SyntheticEvent<T> extends React.SyntheticEvent<T> {}
 
     function isValidElement(object: {}): boolean;
-    function findNodeHandle(componentOrHandle: any): number;
+    function findNodeHandle(componentOrHandle: any): number | null;
 
     var Children: React.ReactChildren;
 
@@ -70,7 +70,7 @@ declare module 'react-native' {
     // ----------------------------------------------------------------------
 
     interface ComponentPropsBase {
-        ref?: string | ((obj: ReactNativeBaseComponent<any, any>) => void);
+        ref?: string | ((obj: ReactNativeBaseComponent<any, any> | null) => void);
         key?: string | number;
     }
 
@@ -238,7 +238,7 @@ declare module 'react-native' {
     interface CommonAccessibilityProps {
         accessibilityLabel?              : string;
         accessible?                      : boolean;
-        onAcccessibilityTap?             : Function;
+        onAccessibilityTap?              : Function;
 
         // android
         accessibilityComponentType?    : string; //enum ( 'none', 'button', 'radiobutton_checked', 'radiobutton_unchecked' )
@@ -267,6 +267,13 @@ declare module 'react-native' {
         // iOS
         onAccessibilityTapIOS?: Function;
         shouldRasterizeIOS? : boolean;
+
+        // Windows
+        onKeyDown?: Function;
+        onMouseEnter?: Function;
+        onMouseLeave?: Function;
+        onMouseOver?: Function;
+        onMouseMove?: Function;
     }
 
     interface ScrollViewProps extends ViewProps {
@@ -310,6 +317,11 @@ declare module 'react-native' {
         overScrollMode?: string; //enum( 'always', 'always-if-content-scrolls', 'never' )
         // iOS
         scrollIndicatorInsets?: {top: number, left: number, bottom: number, right: number };
+        // Windows only
+        onKeyDown? : Function;
+        onKeyUp? : Function;
+        tabNavigation? : 'local' | 'cycle' | 'once';
+        disableKeyboardBasedScrolling?: boolean;
     }
 
     interface ListViewDataSourceCallback {
@@ -354,7 +366,7 @@ declare module 'react-native' {
         editable?: boolean;
         keyboardType?: string; // enum("default", 'numeric', 'email-address', "ascii-capable", 'numbers-and-punctuation', 'url', 'number-pad', 'phone-pad', 'name-phone-pad', 'decimal-pad', 'twitter', 'web-search')
         multiline?: boolean;
-        onBlur?: ((e: React.FocusEvent<TextInput>) => void);
+        onBlur?: (() => void);
         onKeyPress?: (e: SyntheticEvent<TextInput>) => void;
         onChange?: Function;
         onChangeText?: ((changedText: string) => void);
@@ -397,6 +409,8 @@ declare module 'react-native' {
         textBreakStrategy?: 'highQuality' | 'simple' | 'balanced';
         // macOS only property for submitting the text on enter
         submitTextOnEnter?: boolean;
+        // Windows only
+        tabIndex?: number;
     }
 
     interface TextInputState {
@@ -418,6 +432,7 @@ declare module 'react-native' {
         onLoadStart?: Function;
         renderError?: Function;
         onError?: Function;
+        onMessage?: Function;
         renderLoading?: Function;
         scalesPageToFit?: boolean;
         scrollEnabled?: boolean;
@@ -505,6 +520,8 @@ declare module 'react-native' {
         static State: TextInputState;
     }
     class WebView extends ReactNativeBaseComponent<WebViewProps, {}> {
+        postMessage(message: string) : void;
+        injectJavaScript(javascript: string) : void;
         reload() : void;
         goBack() : void;
         goForward() : void;
@@ -615,8 +632,10 @@ declare module 'react-native' {
         static flatten: (s: StyleSheet) => { [key: string]: any };
     }
 
+    type ComponentProvider = () => React.ComponentType<any>;
+
     class AppRegistry {
-        static registerComponent(appKey: string, getComponentFunc: Function): any;
+        static registerComponent(appKey: string, getComponentFunc: ComponentProvider): any;
     }
 
    type  CameraRollProps = {
@@ -788,16 +807,25 @@ declare module 'react-native' {
         panHandlers: ResponderProps;
     }
 
-    type DimensionType = {
-        width: number,
-        height: number,
-        scale: number,
-        fontScale: number,
+    interface DimensionType {
+        width: number;
+        height: number;
+        scale: number;
+        fontScale: number;
+    }
+
+    type DimensionEventType = 'change';
+
+    interface DimensionChangeEvent {
+        window: DimensionType;
+        screen: DimensionType;
     }
 
     class Dimensions {
         static set(obj: any): boolean;
         static get(key: string): DimensionType;
+
+        static addEventListener(type: DimensionEventType, handler: (event: DimensionChangeEvent) => void): void;
     }
 
     type RCTAppStateData = { app_state: string }
@@ -871,6 +899,11 @@ declare module 'react-native' {
          static clear(callback: (error: any) => void): void;
      }
 
+     interface ConnectionInfo {
+         type: 'none' | 'wifi' | 'cellular' | 'bluetooth' | 'ethernet' | 'wimax' | 'unknown';
+         effectiveType: '2g' | '3g' | '4g' | 'unknown';
+     }
+
      class NetInfo {
          static isConnected: {
              addEventListener: (eventName: string, handler: (isConnected: boolean) => void) => void;
@@ -878,6 +911,7 @@ declare module 'react-native' {
              fetch: () => Promise<boolean>;
          }
          static fetch(): Promise<string>;
+         static getConnectionInfo(): Promise<ConnectionInfo>;
      }
 
      class Easing {

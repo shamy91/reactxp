@@ -35,15 +35,25 @@ export class Network extends RX.Network {
     }
 
     getType(): SyncTasks.Promise<Types.DeviceNetworkType> {
-        return SyncTasks.fromThenable(RN.NetInfo.fetch().then(networkType =>
-            Network._NativeNetworkTypeToDeviceNetworkType(networkType)));
+        // Is the newer call available? Use it instead of the soon-to-be-deprecated
+        // NetInfo.fetch call if possible.
+        if (RN.NetInfo.getConnectionInfo) {
+            return SyncTasks.fromThenable(RN.NetInfo.getConnectionInfo()).then(info => {
+                return Network._getNetworkTypeFromConnectionInfo(info);
+            });
+        } else {
+            // Use the older RN.NetInfo.fetch call if the newer call isn't available.
+            return SyncTasks.fromThenable(RN.NetInfo.fetch().then(networkType => {
+                return Network._getNetworkTypeFromNetInfo(networkType);
+            }));
+        }
     }
 
     private _onEventOccured(isConnected: boolean) {
         this.connectivityChangedEvent.fire(isConnected);
     }
 
-    private static _NativeNetworkTypeToDeviceNetworkType(networkType: string): Types.DeviceNetworkType {
+    private static _getNetworkTypeFromNetInfo(networkType: string): Types.DeviceNetworkType {
         switch (networkType) {
             case 'UNKNOWN':
                 return Types.DeviceNetworkType.Unknown;
@@ -57,6 +67,22 @@ export class Network extends RX.Network {
                 return Types.DeviceNetworkType.Mobile3G;
             case 'MOBILE_4G':
                 return Types.DeviceNetworkType.Mobile4G;
+        }
+
+        return Types.DeviceNetworkType.Unknown;
+    }
+
+    private static _getNetworkTypeFromConnectionInfo(info: RN.ConnectionInfo): Types.DeviceNetworkType {
+        if (info.effectiveType === '2g') {
+            return Types.DeviceNetworkType.Mobile2G;
+        } else if (info.effectiveType === '3g') {
+            return Types.DeviceNetworkType.Mobile3G;
+        } else if (info.effectiveType === '4g') {
+            return Types.DeviceNetworkType.Mobile4G;
+        } else if (info.type === 'wifi' || info.type === 'ethernet') {
+            return Types.DeviceNetworkType.Wifi;
+        } else if (info.type === 'none') {
+            return Types.DeviceNetworkType.None;
         }
 
         return Types.DeviceNetworkType.Unknown;

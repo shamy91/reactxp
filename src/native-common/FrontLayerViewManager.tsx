@@ -34,8 +34,11 @@ const _styles = {
     }
 };
 
+const MAX_CACHED_POPUPS = 4;
+
 export class FrontLayerViewManager {
     private _overlayStack: (ModalStackContext | PopupStackContext)[] = [];
+    private _cachedPopups: PopupStackContext[] = [];
 
     event_changed = new SubscribableEvent<() => void>();
 
@@ -48,8 +51,16 @@ export class FrontLayerViewManager {
         }
     }
 
-    public isModalDisplayed(modalId: string) : boolean {
-        return this._findIndexOfModal(modalId) !== -1;
+    public isModalDisplayed(modalId?: string) : boolean {
+        if (modalId) {
+            return this._findIndexOfModal(modalId) !== -1;
+        } else {
+            if (this._overlayStack.length > 0) {
+                const modals = _.filter(this._overlayStack, iter => (iter instanceof ModalStackContext));
+                return modals.length > 0;
+            }
+            return false;
+        }
     }
 
     public dismissModal(modalId: string): void {
@@ -71,14 +82,19 @@ export class FrontLayerViewManager {
     public showPopup(
         popupOptions: Types.PopupOptions, popupId: string, delay?: number): boolean {
         const index = this._findIndexOfPopup(popupId);
-        
         if (index === -1) {
-            this._overlayStack.push(new PopupStackContext(popupId, popupOptions, RN.findNodeHandle(popupOptions.getAnchor())));
+            const nodeHandle = RN.findNodeHandle(popupOptions.getAnchor());
+            if (nodeHandle) {
+                if (popupOptions.cacheable) {
+                    // The popup is transitioning from cached to active.
+                    this._cachedPopups = this._cachedPopups.filter(popup => popup.popupId !== popupId);
+                }
 
-            this.event_changed.fire();
-            return true;
+                this._overlayStack.push(new PopupStackContext(popupId, popupOptions, nodeHandle));
+                this.event_changed.fire();
+                return true;    
+            }
         }
-
         return false;
     }
 
@@ -86,11 +102,18 @@ export class FrontLayerViewManager {
         const index = this._findIndexOfPopup(popupId);
         if (index >= 0) {
             const popupContext = this._overlayStack[index] as PopupStackContext;
+            if (popupContext.popupOptions.cacheable) {
+                // The popup is transitioning from active to cached.
+                this._cachedPopups.push(popupContext);
+                this._cachedPopups = this._cachedPopups.slice(-MAX_CACHED_POPUPS);
+            }
+
+            this._overlayStack.splice(index, 1);
+
             if (popupContext.popupOptions.onDismiss) {
                 popupContext.popupOptions.onDismiss();
             }
 
-            this._overlayStack.splice(index, 1);
             this.event_changed.fire();
         }
     }
@@ -109,9 +132,9 @@ export class FrontLayerViewManager {
             return null;
         }
 
-        const overlayContext = 
+        const overlayContext =
             _.findLast(
-                this._overlayStack, 
+                this._overlayStack,
                 context => context instanceof ModalStackContext && this.modalOptionsMatchesRootViewId(context.modalOptions, rootViewId)
             ) as ModalStackContext;
 
@@ -126,47 +149,74 @@ export class FrontLayerViewManager {
         return null;
     }
 
+    public getActivePopupId() : string | null {
+        let activeOverlay = this._getActiveOverlay();
+        if (activeOverlay && (activeOverlay instanceof PopupStackContext)) {
+            return activeOverlay.popupId;
+        }
+        return null;
+    }
+
+    public releaseCachedPopups(): void {
+        this._cachedPopups = [];
+    }
+
     // Returns true if both are undefined, or if there are options and the rootViewIds are equal.
     private modalOptionsMatchesRootViewId(options?: Types.ModalOptions, rootViewId?: string): boolean {
         return !!(options === rootViewId || options && options.rootViewId === rootViewId);
     }
 
-    public getPopupLayerView(rootViewId?: string | null): React.ReactElement<any> | null {
+    private _renderPopup(context: PopupStackContext, hidden: boolean): JSX.Element {
+        const key = (context.popupOptions.cacheable ? 'CP:' : 'P:') + context.popupId;
+        return (
+            <PopupContainerView
+                key={ key }
+                popupOptions={ context.popupOptions }
+                anchorHandle={ hidden ? undefined : context.anchorHandle }
+                onDismissPopup={ hidden ? undefined : () => this.dismissPopup(context.popupId) }
+                hidden={ hidden }
+            />
+        );
+    }
+
+    public getPopupLayerView(rootViewId?: string | null): JSX.Element | null {
         if (rootViewId === null) {
             // The Popup layer is only supported on root views that have set an id, or
             // the default root view (which has an undefined id)
             return null;
         }
 
-        const overlayContext = 
+        let popupContainerViews: JSX.Element[] = [];
+
+        const overlayContext =
             _.findLast(
-                this._overlayStack, 
+                this._overlayStack,
                 context => context instanceof PopupStackContext && context.popupOptions.rootViewId === rootViewId
             ) as PopupStackContext;
-
         if (overlayContext) {
+            popupContainerViews.push(this._renderPopup(overlayContext, false));
+        }
+        this._cachedPopups.map(context => popupContainerViews.push(this._renderPopup(context, true)));
+
+        if (popupContainerViews.length > 0) {
             return (
-                <ModalContainer>
+                <ModalContainer hidden={ !overlayContext }>
                     <RN.TouchableWithoutFeedback
                         onPressOut={ this._onBackgroundPressed }
                         importantForAccessibility={ 'no' }
-                    >
-                        <RN.View style={ _styles.fullScreenView }>
-                            <PopupContainerView
-                                activePopupOptions={ overlayContext.popupOptions }
-                                anchorHandle={ overlayContext.anchorHandle }
-                                onDismissPopup={ () => this.dismissPopup(overlayContext.popupId) }
-                            />
+                        >
+                        <RN.View
+                            style={ _styles.fullScreenView }>
+                            { popupContainerViews }
                         </RN.View>
                     </RN.TouchableWithoutFeedback>
                 </ModalContainer>
             );
         }
-
         return null;
     }
 
-    private _onBackgroundPressed = (e: Types.SyntheticEvent) => {
+    private _onBackgroundPressed = (e: RN.SyntheticEvent<any>) => {
         e.persist();
 
         const activePopupContext = this._getActiveOverlay();
@@ -178,18 +228,18 @@ export class FrontLayerViewManager {
             if (activePopupContext.popupOptions.onAnchorPressed) {
                 RN.NativeModules.UIManager.measureInWindow(
                     activePopupContext.anchorHandle,
-                    (x: number, y: number, width: number, height: number, pageX: number, pageY: number) => {
+                    (x: number, y: number, width: number, height: number) => {
                         const touchEvent = e.nativeEvent as any;
-                        let anchorRect: ClientRect = { left: x, top: y, right: x + width, 
+                        let anchorRect: ClientRect = { left: x, top: y, right: x + width,
                                 bottom: y + height, width: width, height: height };
 
                         // Find out if the press event was on the anchor so we can notify the caller about it.
                         if (!_.isUndefined(touchEvent.pageX) && !_.isUndefined(touchEvent.pageY) &&
                                 touchEvent.pageX >= anchorRect.left && touchEvent.pageX < anchorRect.right
                                 && touchEvent.pageY >= anchorRect.top && touchEvent.pageY < anchorRect.bottom) {
-                            // Showing another animation while dimissing the popup creates a conflict in the 
+                            // Showing another animation while dimissing the popup creates a conflict in the
                             // UI making it not doing one of the two animations (i.e.: Opening an actionsheet
-                            // while dismissing a popup). We introduce this delay to make sure the popup 
+                            // while dismissing a popup). We introduce this delay to make sure the popup
                             // dimissing animation has finished before we call the event handler.
                             setTimeout(() => { activePopupContext.popupOptions.onAnchorPressed!!!(e); }, 500);
                         }
@@ -226,6 +276,19 @@ export class FrontLayerViewManager {
     private _getActiveOverlay() {
         // Check for any Popup in queue
         return this._overlayStack.length === 0 ? null : _.last(this._overlayStack);
+    }
+
+    isPopupDisplayed(popupId?: string): boolean {
+        if (popupId) {
+            return this._findIndexOfPopup(popupId) !== -1;
+        } else {
+            if (this._overlayStack.length > 0) {
+                const popups = _.filter(this._overlayStack, iter => (iter instanceof PopupStackContext));
+                return popups.length > 0;
+            }
+            
+            return false;
+        }
     }
 }
 

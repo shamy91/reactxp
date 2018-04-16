@@ -19,13 +19,12 @@ import RX = require('../common/Interfaces');
 import Types = require('../common/Types');
 
 export class UserInterface extends RX.UserInterface {
-    private _touchLatencyThresholhdMs: number;
+    private _touchLatencyThresholhdMs: number|undefined;
 
     constructor() {
         super();
-
-        RN.DeviceEventEmitter.addListener('didUpdateDimensions', (newValue: RN.DimensionType) => {
-            this.contentSizeMultiplierChangedEvent.fire(newValue.fontScale);
+        RN.Dimensions.addEventListener('change', (event) => {
+            this.contentSizeMultiplierChangedEvent.fire(event.window.fontScale);
         });
     }
 
@@ -37,7 +36,7 @@ export class UserInterface extends RX.UserInterface {
 
         assert.ok(!!nodeHandle);
         RN.NativeModules.UIManager.measureInWindow(
-            nodeHandle, (x: number, y: number, width: number, height: number, pageX: number, pageY: number) => {
+            nodeHandle, (x: number, y: number, width: number, height: number) => {
                 deferred.resolve({
                     x: x,
                     y: y,
@@ -148,7 +147,12 @@ export class UserInterface extends RX.UserInterface {
         RN.AppRegistry.registerComponent(viewKey, () => {
             class RootViewWrapper extends React.Component<any, any> {
                 render() {
-                    return <RootViewUsingProps reactxp_mainViewType={ getComponentFunc() } {...this.props} />;
+                    return (
+                        <RootViewUsingProps
+                            reactxp_mainViewType={ getComponentFunc() }
+                            { ...this.props }
+                        />
+                    );
                 }
             }
 

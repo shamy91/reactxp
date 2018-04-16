@@ -1,9 +1,9 @@
 PRODUCT: reactxp
-SHORTDESC: A cross-platform Framework hiding the differences between react and react-native.
-REQUEST_ID: TPS-52698
+SHORTDESC: 
+REQUEST_ID: TPSREQ/1424683
 LICENSE_TYPE: MIT License
-LICENSE_URL: https://github.com/dryganets/reactxp/blob/v0.46.6/LICENSE
-USAGE: We use it as the main UI framework in Skype.
+LICENSE_URL: 
+USAGE: Skype for Life UI Library
 DISTRIBUTED: Yes
-HOMEPAGE: github.com
-SOURCE: https://github.com/dryganets/reactxp/archive/v0.46.6.zip
+HOMEPAGE: skype.pkgs.visualstudio.com
+SOURCE: https://skype.pkgs.visualstudio.com/_packaging/tps/npm/registry/reactxp/-/reactxp-1.1.1.tgz

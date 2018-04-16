@@ -46,23 +46,19 @@ let _idCounter = 1;
 
 export class GestureView extends RX.ViewBase<Types.GestureViewProps, {}> {
 
-    private _id: number;
+    private _id = _idCounter++;
 
-    private _container: HTMLElement;
+    private _container: HTMLElement|null|   undefined;
     // State for tracking double taps
     private _doubleTapTimer: number|undefined;
-    private _lastTapEvent: Types.MouseEvent|undefined;
+    private _lastTapEvent: React.MouseEvent<any>|undefined;
 
-    private _responder: MouseResponderSubscription;
+    private _responder: MouseResponderSubscription|undefined;
 
     // private _pendingGestureState: Types.PanGestureState = null;
     private _pendingGestureType = GestureType.None;
     private _gestureTypeLocked = false;
     private _skipNextTap = false;
-
-    componentDidMount() {
-        this._id = _idCounter++;
-    }
 
     componentWillUnmount() {
         // Dispose of timer before the component goes away.
@@ -88,12 +84,12 @@ export class GestureView extends RX.ViewBase<Types.GestureViewProps, {}> {
         );
     }
 
-    private _createMouseResponder() {
+    private _createMouseResponder(container: HTMLElement) {
         this._disposeMouseResponder();
 
         this._responder = MouseResponder.create({
             id: this._id,
-            target: this._container,
+            target: container,
             shouldBecomeFirstResponder: (event: MouseEvent) => {
                 if (!this.props.onPan && !this.props.onPanHorizontal && !this.props.onPanVertical) {
                     return false;
@@ -134,12 +130,12 @@ export class GestureView extends RX.ViewBase<Types.GestureViewProps, {}> {
         }
     }
 
-    private _setContainerRef = (container: any) => {
+    private _setContainerRef = (container: HTMLElement|null) => {
         // safe since div refs resolve into HTMLElement and not react element.
-        this._container = container as HTMLElement;
+        this._container = container;
 
         if (container) {
-            this._createMouseResponder();
+            this._createMouseResponder(container);
         } else {
             this._disposeMouseResponder();
         }
@@ -170,7 +166,7 @@ export class GestureView extends RX.ViewBase<Types.GestureViewProps, {}> {
         return combinedStyles;
     }
 
-    private _onClick = (e: Types.MouseEvent) => {
+    private _onClick = (e: React.MouseEvent<any>) => {
         if (!this.props.onDoubleTap) {
             // If there is no double-tap handler, we can invoke the tap handler immediately.
             this._sendTapEvent(e);
@@ -220,7 +216,7 @@ export class GestureView extends RX.ViewBase<Types.GestureViewProps, {}> {
         const threshold = this._getPanPixelThreshold();
         const distance = this._calcDistance(
             gestureState.clientX - gestureState.initialClientX,
-            gestureState.clientY - gestureState.initialClientY,
+            gestureState.clientY - gestureState.initialClientY
         );
 
         if (distance < threshold) {
@@ -292,7 +288,7 @@ export class GestureView extends RX.ViewBase<Types.GestureViewProps, {}> {
     // This method assumes that the caller has already determined that two
     // clicks have been detected in a row. It is responsible for determining if
     // they occurred within close proximity and within a certain threshold of time.
-    private _isDoubleTap(e: Types.MouseEvent) {
+    private _isDoubleTap(e: React.MouseEvent<any>) {
         const timeStamp = e.timeStamp.valueOf();
         const pageX = e.pageX;
         const pageY = e.pageY;
@@ -307,10 +303,10 @@ export class GestureView extends RX.ViewBase<Types.GestureViewProps, {}> {
     }
 
     // Starts a timer that reports a previous tap if it's not canceled by a subsequent gesture.
-    private _startDoubleTapTimer(e: Types.MouseEvent) {
+    private _startDoubleTapTimer(e: React.MouseEvent<any>) {
         this._lastTapEvent = _.clone(e);
 
-        this._doubleTapTimer = window.setTimeout(() => {
+        this._doubleTapTimer = setTimeout(() => {
             this._reportDelayedTap();
             this._doubleTapTimer = undefined;
         }, _doubleTapDurationThreshold);
@@ -333,7 +329,7 @@ export class GestureView extends RX.ViewBase<Types.GestureViewProps, {}> {
         }
     }
 
-    private _sendTapEvent(e: Types.MouseEvent) {
+    private _sendTapEvent(e: React.MouseEvent<any>) {
         // we need to skip tap after succesfull pan event
         // mouse up would otherwise trigger both pan & tap
         if (this._skipNextTap) {
@@ -358,7 +354,7 @@ export class GestureView extends RX.ViewBase<Types.GestureViewProps, {}> {
         }
     }
 
-    private _sendDoubleTapEvent(e: Types.MouseEvent) {
+    private _sendDoubleTapEvent(e: React.MouseEvent<any>) {
         if (this.props.onDoubleTap) {
             const clientRect = this._getGestureViewClientRect();
 

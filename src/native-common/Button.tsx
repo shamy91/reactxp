@@ -12,8 +12,10 @@ import React = require('react');
 import RN = require('react-native');
 import PropTypes = require('prop-types');
 
-import Animated from './Animated';
 import AccessibilityUtil from './AccessibilityUtil';
+import Animated from './Animated';
+import AppConfig from '../common/AppConfig';
+import EventHelpers from './utils/EventHelpers';
 import Styles from './Styles';
 import Types = require('../common/Types');
 import { isEqual } from '../common/lodashMini';
@@ -59,11 +61,6 @@ export interface ButtonContext {
 }
 
 export class Button extends React.Component<Types.ButtonProps, {}> {
-    static propTypes = {
-        // Button should only have a single child.
-        children: PropTypes.element
-    };
-
     static contextTypes = {
         hasRxButtonAscendant: PropTypes.bool
     };
@@ -75,17 +72,20 @@ export class Button extends React.Component<Types.ButtonProps, {}> {
     private _mixin_componentDidMount = RN.Touchable.Mixin.componentDidMount || noop;
     private _mixin_componentWillUnmount = RN.Touchable.Mixin.componentWillUnmount || noop;
 
-    touchableGetInitialState: () => RN.Touchable.State;
-    touchableHandleStartShouldSetResponder: () => boolean;
-    touchableHandleResponderTerminationRequest: () => boolean;
-    touchableHandleResponderGrant: (e: React.SyntheticEvent<any>) => void;
-    touchableHandleResponderMove: (e: React.SyntheticEvent<any>) => void;
-    touchableHandleResponderRelease: (e: React.SyntheticEvent<any>) => void;
-    touchableHandleResponderTerminate: (e: React.SyntheticEvent<any>) => void;
+    // These are provided by mixin applied in the constructor
+    touchableGetInitialState!: () => RN.Touchable.State;
+    touchableHandleStartShouldSetResponder!: () => boolean;
+    touchableHandleResponderTerminationRequest!: () => boolean;
+    touchableHandleResponderGrant!: (e: React.SyntheticEvent<any>) => void;
+    touchableHandleResponderMove!: (e: React.SyntheticEvent<any>) => void;
+    touchableHandleResponderRelease!: (e: React.SyntheticEvent<any>) => void;
+    touchableHandleResponderTerminate!: (e: React.SyntheticEvent<any>) => void;
 
     private _isMounted = false;
+    protected _isMouseOver = false;
+    protected _isHoverStarted = false;
     private _hideTimeout: number|undefined;
-    private _buttonElement: RN.Animated.View|undefined;
+    private _buttonElement: RN.Animated.View|null = null;
     private _defaultOpacityValue: number|undefined;
     private _opacityAnimatedValue: RN.Animated.Value|undefined;
     private _opacityAnimatedStyle: Types.AnimatedViewStyleRuleSet|undefined;
@@ -102,8 +102,20 @@ export class Button extends React.Component<Types.ButtonProps, {}> {
         this._setOpacityStyles(props);
 
         if (context.hasRxButtonAscendant) {
-            console.warn('Button components should not be embedded. Some APIs, e.g. Accessibility, will not work.');
+            if (AppConfig.isDevelopmentMode()) {
+                console.warn('Button components should not be embedded. Some APIs, e.g. Accessibility, will not work.');
+            }
         }
+    }
+
+    protected _render(internalProps: RN.ViewProps): JSX.Element {
+        return (
+            <RN.Animated.View
+                { ...internalProps }
+             >
+                { this.props.children }
+            </RN.Animated.View>
+        );
     }
 
     render() {
@@ -111,33 +123,40 @@ export class Button extends React.Component<Types.ButtonProps, {}> {
         const importantForAccessibility = AccessibilityUtil.importantForAccessibilityToString(this.props.importantForAccessibility,
             _defaultImportantForAccessibility);
         const accessibilityTrait = AccessibilityUtil.accessibilityTraitToString(this.props.accessibilityTraits,
-             _defaultAccessibilityTrait);
+             _defaultAccessibilityTrait, true);
         const accessibilityComponentType = AccessibilityUtil.accessibilityComponentTypeToString(this.props.accessibilityTraits,
             _defaultAccessibilityTrait);
 
         const opacityStyle = !this.props.disableTouchOpacityAnimation && this._opacityAnimatedStyle;
+        let disabledStyle = this.props.disabled && _styles.disabled;
 
-        return (
-            <RN.Animated.View
-                ref={ this._onButtonRef }
-                style={ Styles.combine([_styles.defaultButton, this.props.style, opacityStyle,
-                    this.props.disabled && _styles.disabled]) }
-                accessibilityLabel={ this.props.accessibilityLabel || this.props.title }
-                accessibilityTraits={ accessibilityTrait }
-                accessibilityComponentType={ accessibilityComponentType }
-                importantForAccessibility={ importantForAccessibility }
-                onStartShouldSetResponder={ this.touchableHandleStartShouldSetResponder }
-                onResponderTerminationRequest={ this.touchableHandleResponderTerminationRequest }
-                onResponderGrant={ this.touchableHandleResponderGrant }
-                onResponderMove={ this.touchableHandleResponderMove }
-                onResponderRelease={ this.touchableHandleResponderRelease }
-                onResponderTerminate={ this.touchableHandleResponderTerminate }
-                shouldRasterizeIOS={ this.props.shouldRasterizeIOS }
-                onAccessibilityTapIOS={ this.props.onAccessibilityTapIOS }
-            >
-                { this.props.children }
-            </RN.Animated.View>
-        );
+        if (this.props.disabled && this.props.disabledOpacity !== undefined) {
+            disabledStyle = Styles.createButtonStyle({
+                opacity: this.props.disabledOpacity
+            }, false);
+        }
+
+        let internalProps: RN.ViewProps = {
+            ref: this._onButtonRef,
+            style: Styles.combine([_styles.defaultButton, this.props.style, opacityStyle,
+                disabledStyle]),
+            accessibilityLabel: this.props.accessibilityLabel || this.props.title,
+            accessibilityTraits: accessibilityTrait,
+            accessibilityComponentType: accessibilityComponentType,
+            importantForAccessibility: importantForAccessibility,
+            onStartShouldSetResponder: this.touchableHandleStartShouldSetResponder,
+            onResponderTerminationRequest: this.touchableHandleResponderTerminationRequest,
+            onResponderGrant: this.touchableHandleResponderGrant,
+            onResponderMove: this.touchableHandleResponderMove,
+            onResponderRelease: this.touchableHandleResponderRelease,
+            onResponderTerminate: this.touchableHandleResponderTerminate,
+            shouldRasterizeIOS: this.props.shouldRasterizeIOS,
+            onAccessibilityTapIOS: this.props.onAccessibilityTapIOS,
+            onMouseEnter: this._onMouseEnter,
+            onMouseLeave: this._onMouseLeave
+        };
+
+        return this._render(internalProps);
     }
 
     componentDidMount() {
@@ -207,16 +226,24 @@ export class Button extends React.Component<Types.ButtonProps, {}> {
         }
     }
 
-    touchableHandlePress = (e: Types.MouseEvent) => {
+    touchableHandlePress = (e: Types.SyntheticEvent) => {
         UserInterface.evaluateTouchLatency(e);
-        if (!this.props.disabled && this.props.onPress) {
-            this.props.onPress(e);
+        if (!this.props.disabled) {
+            if (EventHelpers.isRightMouseButton(e)) {
+                if (this.props.onContextMenu) {
+                    this.props.onContextMenu(EventHelpers.toMouseEvent(e));
+                }
+            } else {
+                if (this.props.onPress) {
+                    this.props.onPress(EventHelpers.toMouseEvent(e));
+                }
+            }
         }
     }
 
-    touchableHandleLongPress = (e: Types.MouseEvent) => {
-        if (!this.props.disabled && this.props.onLongPress) {
-            this.props.onLongPress(e);
+    touchableHandleLongPress = (e: Types.SyntheticEvent) => {
+        if (!this.props.disabled && !EventHelpers.isRightMouseButton(e) && this.props.onLongPress) {
+            this.props.onLongPress(EventHelpers.toMouseEvent(e));
         }
     }
 
@@ -247,7 +274,7 @@ export class Button extends React.Component<Types.ButtonProps, {}> {
         }
     }
 
-    private _onButtonRef = (btn: RN.Animated.View): void => {
+    private _onButtonRef = (btn: RN.Animated.View|null): void => {
         this._buttonElement = btn;
     }
 
@@ -270,6 +297,36 @@ export class Button extends React.Component<Types.ButtonProps, {}> {
         }
 
         return flattenedStyles && (flattenedStyles as Types.ButtonStyle).opacity || 1;
+    }
+
+    protected _onMouseEnter = (e: Types.SyntheticEvent) => {
+        this._isMouseOver = true;
+        this._onHoverStart(e);
+    }
+
+    protected _onMouseLeave = (e: Types.SyntheticEvent) => {
+        this._isMouseOver = false;
+        this._onHoverEnd(e);
+    }
+
+    protected _onHoverStart = (e: Types.SyntheticEvent) => {
+        if (!this._isHoverStarted && this._isMouseOver) {
+            this._isHoverStarted = true;
+
+            if (this.props.onHoverStart) {
+                this.props.onHoverStart(e);
+            }
+        }
+    }
+
+    protected _onHoverEnd = (e: Types.SyntheticEvent) => {
+        if (this._isHoverStarted && !this._isMouseOver) {
+            this._isHoverStarted = false;
+
+            if (this.props.onHoverEnd) {
+                this.props.onHoverEnd(e);
+            }
+        }
     }
 
     /**
@@ -315,7 +372,7 @@ export class Button extends React.Component<Types.ButtonProps, {}> {
         this._buttonElement.setNativeProps({
             style: [{
                 backgroundColor: _underlayInactive
-            }, this.props.style],
+            }, this.props.style]
         });
     }
 }

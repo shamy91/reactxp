@@ -7,11 +7,11 @@
 * RN-specific implementation of the cross-platform TextInput abstraction.
 */
 
-import _ = require('../native-common/lodashMini');
 import React = require('react');
 import RN = require('react-native');
 
 import AccessibilityUtil from './AccessibilityUtil';
+import EventHelpers from '../native-common/utils/EventHelpers';
 import Styles from '../native-common/Styles';
 import Types = require('../common/Types');
 
@@ -30,6 +30,7 @@ export interface TextInputState {
 export class TextInput extends React.Component<Types.TextInputProps, TextInputState> {
     private _selectionStart: number = 0;
     private _selectionEnd: number = 0;
+    private _mountedComponent: RN.ReactNativeBaseComponent<any, any>|null = null;
 
     constructor(props: Types.TextInputProps) {
         super(props);
@@ -51,10 +52,9 @@ export class TextInput extends React.Component<Types.TextInputProps, TextInputSt
     render() {
         const editable = (this.props.editable !== undefined ? this.props.editable : true);
         const blurOnSubmit = this.props.blurOnSubmit || !this.props.multiline;
-        const submitTextOnEnter = this.props.submitTextOnEnter && this.props.multiline;
         return (
             <RN.TextInput
-                ref={ 'nativeTextInput' }
+                ref={ this._onMount }
                 multiline={ this.props.multiline }
                 style={ Styles.combine([_styles.defaultTextInput, this.props.style]) }
                 value={ this.state.inputValue }
@@ -80,7 +80,6 @@ export class TextInput extends React.Component<Types.TextInputProps, TextInputSt
                 selection={{ start: this._selectionStart, end: this._selectionEnd }}
                 secureTextEntry={ this.props.secureTextEntry }
 
-                textAlign={ this.props.textAlign }
                 keyboardAppearance={ this.props.keyboardAppearance }
                 returnKeyType={ this.props.returnKeyType }
                 disableFullscreenUI={ this.props.disableFullscreenUI }
@@ -90,9 +89,12 @@ export class TextInput extends React.Component<Types.TextInputProps, TextInputSt
                 allowFontScaling={ this.props.allowFontScaling }
                 maxContentSizeMultiplier={ this.props.maxContentSizeMultiplier }
                 underlineColorAndroid='transparent'
-                submitTextOnEnter={ submitTextOnEnter }
             />
         );
+    }
+
+    protected _onMount = (component: RN.ReactNativeBaseComponent<any, any>|null) => {
+        this._mountedComponent = component;
     }
 
     private _onFocus = (e: Types.FocusEvent) => {
@@ -103,11 +105,11 @@ export class TextInput extends React.Component<Types.TextInputProps, TextInputSt
         }
     }
 
-    private _onBlur = (e: Types.FocusEvent) => {
+    private _onBlur = () => {
         this.setState({ isFocused: false });
 
         if (this.props.onBlur) {
-            this.props.onBlur(e);
+            this.props.onBlur();
         }
     }
 
@@ -137,106 +139,10 @@ export class TextInput extends React.Component<Types.TextInputProps, TextInputSt
         this.forceUpdate();
     }
 
-    private _onKeyPress = (e: React.KeyboardEvent<TextInput>) => {
+    private _onKeyPress = (e: React.SyntheticEvent<any>) => {
+
         if (this.props.onKeyPress) {
-            let keyName: string = (e.nativeEvent as any).key;
-            let keyCode: number = 0;
-
-            if (keyName.length === 1) {
-                keyCode = keyName.charCodeAt(0);
-            } else {
-                switch (keyName) {
-                    case 'Backspace':
-                        keyCode = 8;
-                        break;
-
-                    case 'Tab':
-                        keyCode = 9;
-                        break;
-
-                    case 'Enter':
-                        keyCode = 13;
-                        break;
-
-                    case 'Shift':
-                        keyCode = 16;
-                        break;
-
-                    case 'Control':
-                        keyCode = 17;
-                        break;
-
-                    case 'Alt':
-                        keyCode = 18;
-                        break;
-
-                    case 'Escape':
-                        keyCode = 27;
-                        break;
-
-                    case 'Space':
-                        keyCode = 32;
-                        break;
-
-                    case 'PageUp':
-                        keyCode = 92;
-                        break;
-
-                    case 'PageDown':
-                        keyCode = 93;
-                        break;
-
-                    case 'ArrowLeft':
-                        keyCode = 21;
-                        break;
-
-                    case 'ArrowUp':
-                        keyCode = 19;
-                        break;
-
-                    case 'ArrowRight':
-                        keyCode = 22;
-                        break;
-
-                    case 'ArrowDown':
-                        keyCode = 20;
-                        break;
-
-                    case 'Delete':
-                        keyCode = 8;
-                        break;
-                }
-            }
-
-            // We need to add keyCode to the original event, but React Native
-            // reuses events, so we're not allowed to modify the original.
-            // Instead, we'll clone it.
-            let keyEvent = _.clone(e);
-            keyEvent.keyCode = keyCode;
-            if (e.nativeEvent.shiftKey) {
-                keyEvent.shiftKey = e.nativeEvent.shiftKey;
-            }
-            if (e.nativeEvent.ctrlKey) {
-                keyEvent.ctrlKey = e.nativeEvent.ctrlKey;
-            }
-            if (e.nativeEvent.altKey) {
-                keyEvent.altKey = e.nativeEvent.altKey;
-            }
-            if (e.nativeEvent.metaKey) {
-                keyEvent.metaKey = e.nativeEvent.metaKey;
-            }
-            keyEvent.stopPropagation = () => {
-                if (e.stopPropagation) {
-                    e.stopPropagation();
-                }
-            };
-            keyEvent.preventDefault = () => {
-                if (e.preventDefault) {
-                    e.preventDefault();
-                }
-            };
-
-            this.props.onKeyPress(keyEvent);
+            this.props.onKeyPress(EventHelpers.toKeyboardEvent(e));
         }
     }
 
@@ -248,11 +154,15 @@ export class TextInput extends React.Component<Types.TextInputProps, TextInputSt
     }
 
     blur() {
-        (this.refs['nativeTextInput'] as any).blur();
+        if (this._mountedComponent) {
+            this._mountedComponent.blur();
+        }
     }
 
     focus() {
-        (this.refs['nativeTextInput'] as any).focus();
+        if (this._mountedComponent) {
+            this._mountedComponent.focus();
+        }
     }
 
     setAccessibilityFocus() {

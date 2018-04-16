@@ -14,6 +14,8 @@ import _ = require('./lodashMini');
 
 import Accessibility from './Accessibility';
 import AccessibilityUtil from './AccessibilityUtil';
+import App from './App';
+import AppConfig from '../common/AppConfig';
 import { default as FrontLayerViewManager } from './FrontLayerViewManager';
 import MainViewStore from './MainViewStore';
 import Styles from './Styles';
@@ -56,6 +58,7 @@ const _styles = {
 abstract class BaseRootView<P extends BaseRootViewProps> extends React.Component<P, RootViewState> {
     private _frontLayerViewChangedSubscription: SubscriptionToken|undefined;
     private _newAnnouncementEventChangedSubscription: SubscriptionToken|undefined;
+    private _memoryWarningEventSubscription: SubscriptionToken|undefined;
     protected _mainViewProps: {};
     protected _rootViewId?: string | null;
 
@@ -79,6 +82,11 @@ abstract class BaseRootView<P extends BaseRootViewProps> extends React.Component
                     announcementText: announcement
                 });
         });
+
+        this._memoryWarningEventSubscription = App.memoryWarningEvent.subscribe(() => {
+            FrontLayerViewManager.releaseCachedPopups();
+            this.forceUpdate();
+        });
     }
 
     componentWillUnmount(): void {
@@ -90,6 +98,11 @@ abstract class BaseRootView<P extends BaseRootViewProps> extends React.Component
         if (this._newAnnouncementEventChangedSubscription) {
             this._newAnnouncementEventChangedSubscription.unsubscribe();
             this._newAnnouncementEventChangedSubscription = undefined;
+        }
+
+        if (this._memoryWarningEventSubscription) {
+            this._memoryWarningEventSubscription.unsubscribe();
+            this._memoryWarningEventSubscription = undefined;
         }
     }
 
@@ -143,6 +156,7 @@ class RootViewUsingStore extends BaseRootView<BaseRootViewProps> {
     }
 
     componentWillUnmount(): void {
+        super.componentWillUnmount();
         MainViewStore.unsubscribe(this._changeListener);
     }
 
@@ -153,7 +167,7 @@ class RootViewUsingStore extends BaseRootView<BaseRootViewProps> {
     private _getStateFromStore(): RootViewState {
         let mainView = MainViewStore.getMainView();
 
-        if (mainView && _.isEqual(mainView.props, this._mainViewProps)) {
+        if (mainView && !_.isEqual(mainView.props, this._mainViewProps)) {
             mainView = React.cloneElement(mainView, this._mainViewProps);
         }
 
@@ -174,7 +188,9 @@ class RootViewUsingProps extends BaseRootView<RootViewPropsWithMainViewType> {
         super(props);
 
         if (!props.reactxp_rootViewId) {
-            console.warn('Some APIs require a value for reactxp_rootViewId');
+            if (AppConfig.isDevelopmentMode()) {
+                console.warn('Some APIs require a value for reactxp_rootViewId');
+            }
             this._rootViewId = null;
         } else {
             this._rootViewId = props.reactxp_rootViewId;

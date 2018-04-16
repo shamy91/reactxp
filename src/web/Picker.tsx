@@ -11,13 +11,14 @@ import _ = require('./utils/lodashMini');
 import React = require('react');
 
 import RX = require('../common/Interfaces');
+import Styles from './Styles';
 import Types = require('../common/Types');
 
 export class Picker extends RX.Picker {
     render() {
         return (
             <select
-                style={ this.props.style as any }
+                style={ this._getStyles() as any }
                 value={ this.props.selectedValue }
                 onChange={ this._onValueChange }
             >
@@ -26,7 +27,11 @@ export class Picker extends RX.Picker {
         );
     }
 
-    private _onValueChange = (e: Types.SyntheticEvent) => {
+    private _getStyles(): Types.PickerStyleRuleSet {
+        return Styles.combine(this.props.style) as any;
+    }
+
+    private _onValueChange = (e: React.SyntheticEvent<any>) => {
         const selectEl = e.target as HTMLSelectElement;
         const selectedValue = selectEl.value;
         const selectedItemPosition = _.findIndex(this.props.items, i => i.value === selectedValue);

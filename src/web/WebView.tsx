@@ -8,7 +8,6 @@
 */
 
 import React = require('react');
-import ReactDOM = require('react-dom');
 
 import RX = require('../common/Interfaces');
 import Styles from './Styles';
@@ -34,8 +33,17 @@ export interface WebViewState {
     webFrameIdentifier?: string;
 }
 
+interface WebViewMessageEventInternal extends RX.Types.WebViewMessageEvent {
+    __propagationStopped: boolean;
+}
+
 export class WebView extends RX.ViewBase<Types.WebViewProps, WebViewState> implements RX.WebView {
     private static _webFrameNumber = 1;
+    private static _onMessageReceived: RX.Types.SubscribableEvent<(e: WebViewMessageEventInternal) => void>;
+    private static _messageListenerInstalled = false;
+
+    private _mountedComponent: HTMLIFrameElement|null = null;
+    private _onMessageReceivedToken: RX.Types.SubscriptionToken|undefined;
 
     constructor(props: Types.WebViewProps) {
         super(props);
@@ -51,13 +59,109 @@ export class WebView extends RX.ViewBase<Types.WebViewProps, WebViewState> imple
 
     componentDidMount() {
         this._postRender();
+
+        let customContents = this._getCustomHtml(this.props);
+        if (customContents) {
+            this._setContents(customContents);
+        }
     }
 
     componentDidUpdate(prevProps: Types.WebViewProps, prevState: WebViewState) {
         this._postRender();
+
+        let oldCustomContents = this._getCustomHtml(prevProps);
+        let newCustomContents = this._getCustomHtml(this.props);
+
+        if (newCustomContents) {
+            if (oldCustomContents !== newCustomContents) {
+                this._setContents(newCustomContents);
+            }
+        }
+    }
+
+    componentWillUnmount() {
+        if (this._onMessageReceivedToken) {
+            this._onMessageReceivedToken.unsubscribe();
+            this._onMessageReceivedToken = undefined;
+        }
+    }
+
+    private _getCustomHtml(props: Types.WebViewProps): string|undefined {
+        if (props.url || !props.source) {
+            return undefined;
+        }
+
+        return props.source.html;
+    }
+
+    private _setContents(html: string) {
+        const iframeDOM = this._mountedComponent;
+        if (iframeDOM && iframeDOM.contentWindow) {
+            try {
+                // Some older browsers don't support this, so
+                // be prepared to catch an exception.
+                (iframeDOM as any).srcdoc = html;
+            } catch {
+                // Swallow exceptions
+            }
+        }
+    }
+
+    private _installMessageListener() {
+        // Don't install global message listener twice.
+        if (!WebView._messageListenerInstalled) {
+            // Set up the global event.
+            WebView._onMessageReceived = new RX.Types.SubscribableEvent<
+                (e: WebViewMessageEventInternal) => void>(true);
+            
+            window.addEventListener('message', (e: MessageEvent) => {
+                let event: WebViewMessageEventInternal = {
+                    data: e.data,
+                    origin: e.origin,
+                    nativeEvent: e,
+                    bubbles: e.bubbles,
+                    cancelable: e.cancelable,
+                    defaultPrevented: e.defaultPrevented,
+                    __propagationStopped: false,
+                    stopPropagation: () => {
+                        e.stopPropagation();
+                        event.__propagationStopped = true;
+                    },
+                    preventDefault: () => {
+                        e.preventDefault();
+                    },
+                    timeStamp: e.timeStamp
+                };
+
+                WebView._onMessageReceived.fire(event);
+            });
+
+            WebView._messageListenerInstalled = true;
+        }
+
+        // Subscribe to the global event if we haven't already done so.
+        if (!this._onMessageReceivedToken) {
+            this._onMessageReceivedToken = WebView._onMessageReceived.subscribe(e => {
+                if (this.props.onMessage) {
+                    this.props.onMessage(e);
+
+                    // Stop the event from propagating further.
+                    return e.__propagationStopped;
+                }
+
+                return false;
+            });
+        }
     }
 
     private _postRender() {
+        // If the caller wants to receive posted messages
+        // from the web view, we need to install a global
+        // message handler.
+        if (this.props.onMessage) {
+            this._installMessageListener();
+        }
+
         if (!this.state.postComplete) {
             this.setState({
                 postComplete: true
@@ -75,7 +179,7 @@ export class WebView extends RX.ViewBase<Types.WebViewProps, WebViewState> imple
         return (
             <View style={ _styles.webViewContainer }>
                 <iframe
-                    ref={ 'iframe' }
+                    ref={ this._onMount }
                     name={ this.state.webFrameIdentifier }
                     id={ this.state.webFrameIdentifier }
                     style={ styles as any }
@@ -86,6 +190,10 @@ export class WebView extends RX.ViewBase<Types.WebViewProps, WebViewState> imple
                 />
             </View>
         );
+    }
+
+    protected _onMount = (component: HTMLIFrameElement|null) => {
+        this._mountedComponent = component;
     }
 
     private _onLoad = (e: Types.SyntheticEvent) => {
@@ -132,28 +240,28 @@ export class WebView extends RX.ViewBase<Types.WebViewProps, WebViewState> imple
     }
 
     postMessage(message: string, targetOrigin: string = '*') {
-        const iframeDOM = ReactDOM.findDOMNode(this.refs['iframe']) as HTMLFrameElement;
+        const iframeDOM = this._mountedComponent;
         if (iframeDOM && iframeDOM.contentWindow) {
             iframeDOM.contentWindow.postMessage(message, targetOrigin);
         }
     }
 
     reload() {
-        const iframeDOM = ReactDOM.findDOMNode(this.refs['iframe']) as HTMLFrameElement;
+        const iframeDOM = this._mountedComponent;
         if (iframeDOM && iframeDOM.contentWindow) {
             iframeDOM.contentWindow.location.reload(true);
         }
     }
 
     goBack() {
-        const iframeDOM = ReactDOM.findDOMNode(this.refs['iframe']) as HTMLFrameElement;
+        const iframeDOM = this._mountedComponent;
         if (iframeDOM && iframeDOM.contentWindow) {
             iframeDOM.contentWindow.history.back();
         }
     }
 
     goForward() {
-        const iframeDOM = ReactDOM.findDOMNode(this.refs['iframe']) as HTMLFrameElement;
+        const iframeDOM = this._mountedComponent;
         if (iframeDOM && iframeDOM.contentWindow) {
             iframeDOM.contentWindow.history.forward();
         }

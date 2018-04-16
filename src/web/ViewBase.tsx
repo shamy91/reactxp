@@ -8,9 +8,10 @@
 */
 
 import _ = require('./utils/lodashMini');
-import React = require('react');
 import ReactDOM = require('react-dom');
 
+import { default as FrontLayerViewManager } from './FrontLayerViewManager';
+import AppConfig from '../common/AppConfig';
 import RX = require('../common/Interfaces');
 import SyncTasks = require('synctasks');
 import Types = require('../common/Types');
@@ -28,18 +29,9 @@ export abstract class ViewBase<P extends Types.ViewProps, S> extends RX.ViewBase
     private static _appActivationState = Types.AppActivationState.Active;
 
     abstract render(): JSX.Element;
-    protected abstract _getContainerRef(): React.ReactInstance;
+    protected abstract _getContainer(): HTMLElement|null;
     private _isMounted = false;
-    private _container: HTMLElement|undefined;
-
-    protected _getContainer(): HTMLElement {
-        // Perf: Don't prefetch this since we might never need it
-        const containerRef = this._getContainerRef();
-        if (!this._container && containerRef) {
-            this._container = ReactDOM.findDOMNode(containerRef) as HTMLElement;
-        }
-        return this._container!!!;
-    }
+    private _isPopupDisplayed = false;
 
     // Sets the activation state so we can stop our periodic timer
     // when the app is in the background.
@@ -49,7 +41,7 @@ export abstract class ViewBase<P extends Types.ViewProps, S> extends RX.ViewBase
 
             // Cancel any existing timers.
             if (ViewBase._viewCheckingTimer) {
-                window.clearInterval(ViewBase._viewCheckingTimer);
+                clearInterval(ViewBase._viewCheckingTimer);
                 ViewBase._viewCheckingTimer = undefined;
             }
 
@@ -90,7 +82,7 @@ export abstract class ViewBase<P extends Types.ViewProps, S> extends RX.ViewBase
         this._layoutReportList.push(func);
 
         if (!ViewBase._layoutReportingTimer) {
-            ViewBase._layoutReportingTimer = window.setTimeout(() => {
+            ViewBase._layoutReportingTimer = setTimeout(() => {
                 ViewBase._layoutReportingTimer = undefined;
                 ViewBase._reportDeferredLayoutChanges();
             }, 0);
@@ -105,7 +97,9 @@ export abstract class ViewBase<P extends Types.ViewProps, S> extends RX.ViewBase
             try {
                 func();
             } catch (e) {
-                console.error('Caught exception on onLayout response: ', e);
+                if (AppConfig.isDevelopmentMode()) {
+                    console.error('Caught exception on onLayout response: ', e);
+                }
             }
         });
     }
@@ -207,9 +201,20 @@ export abstract class ViewBase<P extends Types.ViewProps, S> extends RX.ViewBase
     }
 
     componentDidUpdate() {
+        const isPopupDisplayed = FrontLayerViewManager.isPopupDisplayed();
         if (this.props.onLayout) {
-            this._checkAndReportLayout();
+            if (isPopupDisplayed && !this._isPopupDisplayed) {
+                // A popup was just added to DOM. Checking layout now would stall script
+                // execution because the browser would have to do a reflow. Avoid that
+                // by deferring the work.
+                setTimeout(() => {
+                    this._checkAndReportLayout();
+                }, 0);
+            } else {
+                this._checkAndReportLayout();
+            }
         }
+        this._isPopupDisplayed = isPopupDisplayed;
     }
 
     private static _onResize() {
@@ -220,10 +225,6 @@ export abstract class ViewBase<P extends Types.ViewProps, S> extends RX.ViewBase
 
     componentWillUnmount() {
         this._isMounted = false;
-
-        // Don't retain a reference to a DOM object. This can cause memory leaks
-        // because the GC may not be able to clean them up.
-        this._container = undefined;
 
         if (this.props.onLayout) {
             this._checkViewCheckerUnbuild();

@@ -45,18 +45,23 @@ export class ActivityIndicator extends React.Component<Types.ActivityIndicatorPr
     }
 
     render() {
-        let size: string;
+        let size: 'small' | 'large';
         switch (this.props.size) {
             case 'tiny':
-            case 'small' : size = 'small'; break;
-            case 'medium': size = 'small'; break; // React Native ActivityIndicator does not support 'medium' size
-            case 'large' : size = 'large'; break;
-            default      : size = 'large'; break;
+            case 'small':
+            case 'medium':
+                size = 'small';
+                break; // React Native ActivityIndicator does not support 'tiny' or medium' size
+
+            case 'large':
+            default:
+                size = 'large';
+                break;
         }
 
         return (
             <RN.ActivityIndicator
-                animating={ this.state.isVisible }
+                animating={ true }
                 color={ this.state.isVisible ? this.props.color : 'transparent' }
                 size={ size }
             />

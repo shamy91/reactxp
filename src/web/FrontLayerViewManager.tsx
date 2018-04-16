@@ -10,9 +10,11 @@
 import React = require('react');
 import ReactDOM = require('react-dom');
 
-import { RootView } from './RootView';
+import { PopupDescriptor, RootView } from './RootView';
 
 import Types = require('../common/Types');
+
+const MAX_CACHED_POPUPS = 4;
 
 export class FrontLayerViewManager {
     private _mainView: React.ReactElement<any>|undefined;
@@ -24,14 +26,19 @@ export class FrontLayerViewManager {
     private _activePopupAutoDismissDelay: number = 0;
     private _activePopupShowDelay: number = 0;
     private _popupShowDelayTimer: number|undefined;
+    private _cachedPopups: PopupDescriptor[] = [];
 
     setMainView(element: React.ReactElement<any>): void {
         this._mainView = element;
         this._renderRootView();
     }
 
-    isModalDisplayed(modalId: string): boolean {
-        return this._modalStack.some(d => d.id === modalId);
+    isModalDisplayed(modalId?: string): boolean {
+        if (modalId) {
+            return this._modalStack.some(d => d.id === modalId);
+        } else {
+            return this._modalStack.length > 0;
+        }
     }
 
     showModal(modal: React.ReactElement<Types.ViewProps>, modalId: string, options?: Types.ModalOptions) {
@@ -78,31 +85,41 @@ export class FrontLayerViewManager {
     }
 
     private _showPopup(options: Types.PopupOptions, popupId: string, showDelay?: number) : void {
-        if (this._activePopupOptions) {
-            if (this._activePopupOptions.onDismiss) {
-                this._activePopupOptions.onDismiss();
-            }
+        // New popup is transitioning from maybe cached to active.
+        this._cachedPopups = this._cachedPopups.filter(popup => popup.popupId !== popupId);
+        if (this._activePopupOptions && this._activePopupOptions.cacheable && this._activePopupId !== popupId) {
+            // Old popup is transitioning from active to cached.
+            this._cachedPopups.push({ popupOptions: this._activePopupOptions, popupId: this._activePopupId!!! });
+            this._cachedPopups = this._cachedPopups.slice(-MAX_CACHED_POPUPS);
         }
 
-        if (this._popupShowDelayTimer) {
-            clearTimeout(this._popupShowDelayTimer);
-            this._popupShowDelayTimer = undefined;
-        }
-
+        // Update fields before calling onDismiss to guard against reentry.
+        const oldPopupOptions = this._activePopupOptions;
         this._activePopupOptions = options;
         this._activePopupId = popupId;
         this._activePopupAutoDismiss = false;
         this._activePopupAutoDismissDelay = 0;
         this._activePopupShowDelay = showDelay || 0;
-        this._renderRootView();
 
+        if (this._popupShowDelayTimer) {
+            clearTimeout(this._popupShowDelayTimer);
+            this._popupShowDelayTimer = undefined;
+        }
         if (this._activePopupShowDelay > 0) {
-            this._popupShowDelayTimer = window.setTimeout(() => {
+            this._popupShowDelayTimer = setTimeout(() => {
                 this._activePopupShowDelay = 0;
                 this._popupShowDelayTimer = undefined;
                 this._renderRootView();
             }, this._activePopupShowDelay);
         }
+
+        if (oldPopupOptions) {
+            if (oldPopupOptions.onDismiss) {
+                oldPopupOptions.onDismiss();
+            }
+        }
+
+        this._renderRootView();
     }
 
     autoDismissPopup(popupId: string, dismissDelay?: number): void {
@@ -120,17 +137,26 @@ export class FrontLayerViewManager {
 
     dismissPopup(popupId: string): void {
         if (popupId === this._activePopupId && this._activePopupOptions) {
-            if (this._activePopupOptions.onDismiss) {
-                this._activePopupOptions.onDismiss();
-            }
-
             if (this._popupShowDelayTimer) {
                 clearTimeout(this._popupShowDelayTimer);
                 this._popupShowDelayTimer = undefined;
             }
 
+            if (this._activePopupOptions.cacheable) {
+                // The popup is transitioning from active to cached.
+                this._cachedPopups.push({ popupOptions: this._activePopupOptions, popupId: this._activePopupId });
+                this._cachedPopups = this._cachedPopups.slice(-MAX_CACHED_POPUPS);
+            }
+
+            // Reset fields before calling onDismiss to guard against reentry.
+            const activePopupOptions = this._activePopupOptions;
             this._activePopupOptions = undefined;
             this._activePopupId = undefined;
+
+            if (activePopupOptions.onDismiss) {
+                activePopupOptions.onDismiss();
+            }
+
             this._renderRootView();
         }
     }
@@ -142,8 +168,10 @@ export class FrontLayerViewManager {
     }
 
     private _renderRootView() {
-        let topModal = this._modalStack.length > 0 ?
+        const topModal = this._modalStack.length > 0 ?
             this._modalStack[this._modalStack.length - 1].modal : undefined;
+        const activePopup = (!this._activePopupOptions || this._activePopupShowDelay > 0) ? undefined :
+            { popupOptions: this._activePopupOptions, popupId: this._activePopupId!!! };
 
         let rootView = (
             <RootView
@@ -151,7 +179,8 @@ export class FrontLayerViewManager {
                 keyBoardFocusOutline={ this._mainView!!!.props.keyBoardFocusOutline }
                 mouseFocusOutline={ this._mainView!!!.props.mouseFocusOutline }
                 modal={ topModal }
-                activePopupOptions={ this._activePopupShowDelay > 0 ? undefined : this._activePopupOptions }
+                activePopup={ activePopup }
+                cachedPopup={ this._cachedPopups }
                 autoDismiss={ this._activePopupAutoDismiss }
                 autoDismissDelay={ this._activePopupAutoDismissDelay }
                 onDismissPopup={ () => this.dismissPopup(this._activePopupId!!!) }
@@ -161,6 +190,14 @@ export class FrontLayerViewManager {
         const container = document.getElementsByClassName('app-container')[0];
 
         ReactDOM.render(rootView, container);
+    }
+
+    isPopupDisplayed(popupId?: string): boolean {
+        if (popupId) {
+            return popupId === this._activePopupId;
+        } else {
+            return !!this._activePopupId;
+        }
     }
 }
 
