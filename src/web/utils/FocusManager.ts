@@ -159,14 +159,14 @@ export class FocusManager extends FocusManagerBase {
 
         if (first && !first.storedComponent.removed && !first.storedComponent.restricted) {
             requestFocus(
-                FirstFocusableId,
                 first.storedComponent.component,
                 () => {
                     if (!first.storedComponent.removed) {
                         FocusManager.setLastFocusedProgrammatically(first.el);
                         first.el.focus();
                     }
-                }
+                },
+                FirstFocusableId
             );
         }
     }
@@ -185,14 +185,14 @@ export class FocusManager extends FocusManagerBase {
 
             if (first && !first.storedComponent.removed && !first.storedComponent.restricted) {
                 requestFocus(
-                    FirstFocusableId,
                     first.storedComponent.component,
                     () => {
                         if (!first.storedComponent.removed) {
                             FocusManager.setLastFocusedProgrammatically(first.el);
                             first.el.focus();
                         }
-                    }
+                    },
+                    FirstFocusableId
                 );
             }
         } else if ((typeof document !== 'undefined') && document.body && document.body.focus && document.body.blur) {

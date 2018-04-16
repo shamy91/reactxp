@@ -15,4 +15,4 @@ export declare const FirstFocusableId = "reactxp-first-focusable";
 export declare type SortAndFilterFunc = (candidates: Types.FocusCandidate[]) => Types.FocusCandidate[];
 export declare function setSortAndFilterFunc(sortAndFilter: SortAndFilterFunc): void;
 export declare function setFocusArbitrator(arbitrator: Types.FocusArbitrator): void;
-export declare function requestFocus(id: string, component: React.Component<any, any>, focus: () => void): void;
+export declare function requestFocus(component: React.Component<any, any>, focus: () => void, accessibilityId?: string): void;

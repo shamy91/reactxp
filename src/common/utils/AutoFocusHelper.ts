@@ -34,9 +34,9 @@ export function setFocusArbitrator(arbitrator: Types.FocusArbitrator) {
     _arbitrator = arbitrator;
 }
 
-export function requestFocus(id: string, component: React.Component<any, any>, focus: () => void): void {
+export function requestFocus(component: React.Component<any, any>, focus: () => void, accessibilityId?: string): void {
     _pendingAutoFocusItems.push({
-        id,
+        accessibilityId,
         component,
         focus
     });
@@ -65,7 +65,7 @@ export function requestFocus(id: string, component: React.Component<any, any>, f
         // the focus, we choose the first focusable component provided by FocusManager
         // or the last one queued.
         for (let i = 0; i < _pendingAutoFocusItems.length; i++) {
-            if (_pendingAutoFocusItems[i].id === FirstFocusableId) {
+            if (_pendingAutoFocusItems[i].accessibilityId === FirstFocusableId) {
                 autoFocusItem = _pendingAutoFocusItems[i];
                 break;
             }

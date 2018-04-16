@@ -160,9 +160,8 @@ var TextInput = /** @class */ (function (_super) {
         }
     };
     TextInput.prototype.componentDidMount = function () {
-        var autoFocus = this.props.autoFocus;
-        if (autoFocus) {
-            AutoFocusHelper_1.requestFocus(autoFocus.id, this, autoFocus.focus || this._focus);
+        if (this.props.autoFocus) {
+            AutoFocusHelper_1.requestFocus(this, this._focus, this.props.accessibilityId);
         }
     };
     TextInput.prototype.render = function () {

@@ -313,5 +313,5 @@ export interface International {
 export interface FocusUtils {
     FirstFocusableId: string;
     setFocusArbitrator(arbitrator: Types.FocusArbitrator): void;
-    requestFocus(id: string, component: React.Component<any, any>, focus: () => void): void;
+    requestFocus(component: React.Component<any, any>, focus: () => void, accessibilityId?: string): void;
 }

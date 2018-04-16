@@ -66,9 +66,8 @@ export class Text extends React.Component<Types.TextProps, {}> implements React.
     }
 
     componentDidMount() {
-        const autoFocus = this.props.autoFocus;
-        if (autoFocus) {
-            requestFocus(autoFocus.id, this, autoFocus.focus || (() => { if (this._mountedComponent) { this.focus(); } }));
+        if (this.props.autoFocus) {
+            requestFocus(this, () => { if (this._mountedComponent) { this.focus(); } }, this.props.accessibilityId);
         }
     }
 

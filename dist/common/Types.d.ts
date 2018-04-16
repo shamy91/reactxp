@@ -226,6 +226,7 @@ export interface Stateless {
 }
 export interface CommonAccessibilityProps {
     importantForAccessibility?: ImportantForAccessibility;
+    accessibilityId?: string;
     accessibilityLabel?: string;
     accessibilityTraits?: AccessibilityTrait | AccessibilityTrait[];
     tabIndex?: number;
@@ -284,13 +285,9 @@ export declare enum AccessibilityTrait {
     Switch = 35,
     None = 36,
 }
-export interface AutoFocusValue {
-    id: string;
-    focus?: () => void;
-}
 export declare type FocusArbitrator = (candidates: FocusCandidate[]) => boolean;
 export interface FocusCandidate {
-    id: string;
+    accessibilityId?: string;
     component: React.Component<any, any>;
     focus: () => void;
 }
@@ -302,7 +299,7 @@ export interface ButtonProps extends CommonStyledProps<ButtonStyleRuleSet>, Comm
     disabled?: boolean;
     disabledOpacity?: number;
     delayLongPress?: number;
-    autoFocus?: AutoFocusValue;
+    autoFocus?: boolean;
     onAccessibilityTapIOS?: Function;
     onContextMenu?: (e: MouseEvent) => void;
     onPress?: (e: SyntheticEvent) => void;
@@ -359,7 +356,8 @@ export interface TextPropsShared extends CommonProps {
     ellipsizeMode?: 'head' | 'middle' | 'tail';
     textBreakStrategy?: 'highQuality' | 'simple' | 'balanced';
     importantForAccessibility?: ImportantForAccessibility;
-    autoFocus?: AutoFocusValue;
+    accessibilityId?: string;
+    autoFocus?: boolean;
     onPress?: (e: SyntheticEvent) => void;
     id?: string;
     onContextMenu?: (e: MouseEvent) => void;
@@ -384,7 +382,7 @@ export interface ViewPropsShared extends CommonProps, CommonAccessibilityProps {
     viewLayerTypeAndroid?: ViewLayerType;
     restrictFocusWithin?: boolean;
     limitFocusWithin?: LimitFocusType;
-    autoFocus?: AutoFocusValue;
+    autoFocus?: boolean;
     importantForLayout?: boolean;
     id?: string;
     ariaLabelledBy?: string;
@@ -553,7 +551,7 @@ export interface LinkProps extends CommonStyledProps<LinkStyleRuleSet> {
 export interface TextInputPropsShared extends CommonProps, CommonAccessibilityProps {
     autoCapitalize?: 'none' | 'sentences' | 'words' | 'characters';
     autoCorrect?: boolean;
-    autoFocus?: AutoFocusValue;
+    autoFocus?: boolean;
     blurOnSubmit?: boolean;
     defaultValue?: string;
     editable?: boolean;

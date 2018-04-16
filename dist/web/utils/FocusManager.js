@@ -134,12 +134,12 @@ var FocusManager = /** @class */ (function (_super) {
     FocusManager.focusFirst = function (last) {
         var first = FocusManager._getFirstFocusable(last);
         if (first && !first.storedComponent.removed && !first.storedComponent.restricted) {
-            AutoFocusHelper_1.requestFocus(AutoFocusHelper_1.FirstFocusableId, first.storedComponent.component, function () {
+            AutoFocusHelper_1.requestFocus(first.storedComponent.component, function () {
                 if (!first.storedComponent.removed) {
                     FocusManager.setLastFocusedProgrammatically(first.el);
                     first.el.focus();
                 }
-            });
+            }, AutoFocusHelper_1.FirstFocusableId);
         }
     };
     FocusManager.prototype.resetFocus = function () {
@@ -153,12 +153,12 @@ var FocusManager = /** @class */ (function (_super) {
             // necessity to press Tab.
             var first_1 = FocusManager._getFirstFocusable(false, FocusManager._currentRestrictionOwner);
             if (first_1 && !first_1.storedComponent.removed && !first_1.storedComponent.restricted) {
-                AutoFocusHelper_1.requestFocus(AutoFocusHelper_1.FirstFocusableId, first_1.storedComponent.component, function () {
+                AutoFocusHelper_1.requestFocus(first_1.storedComponent.component, function () {
                     if (!first_1.storedComponent.removed) {
                         FocusManager.setLastFocusedProgrammatically(first_1.el);
                         first_1.el.focus();
                     }
-                });
+                }, AutoFocusHelper_1.FirstFocusableId);
             }
         }
         else if ((typeof document !== 'undefined') && document.body && document.body.focus && document.body.blur) {

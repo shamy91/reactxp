@@ -217,9 +217,8 @@ export class View extends ViewBase<Types.ViewProps, {}> {
             this._mixin_componentDidMount();
         }
 
-        const autoFocus = this.props.autoFocus;
-        if (autoFocus) {
-            requestFocus(autoFocus.id, this, autoFocus.focus || (() => { if (this._isMounted) { this.focus(); } }));
+        if (this.props.autoFocus) {
+            requestFocus(this, () => { if (this._isMounted) { this.focus(); } }, this.props.accessibilityId);
         }
     }
 

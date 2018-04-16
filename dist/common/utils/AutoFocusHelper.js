@@ -28,9 +28,9 @@ function setFocusArbitrator(arbitrator) {
     _arbitrator = arbitrator;
 }
 exports.setFocusArbitrator = setFocusArbitrator;
-function requestFocus(id, component, focus) {
+function requestFocus(component, focus, accessibilityId) {
     _pendingAutoFocusItems.push({
-        id: id,
+        accessibilityId: accessibilityId,
         component: component,
         focus: focus
     });
@@ -53,7 +53,7 @@ function requestFocus(id, component, focus) {
         // the focus, we choose the first focusable component provided by FocusManager
         // or the last one queued.
         for (var i = 0; i < _pendingAutoFocusItems.length; i++) {
-            if (_pendingAutoFocusItems[i].id === exports.FirstFocusableId) {
+            if (_pendingAutoFocusItems[i].accessibilityId === exports.FirstFocusableId) {
                 autoFocusItem = _pendingAutoFocusItems[i];
                 break;
             }

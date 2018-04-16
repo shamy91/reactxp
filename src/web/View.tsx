@@ -397,9 +397,8 @@ export class View extends ViewBase<Types.ViewProps, {}> {
     componentDidMount() {
         super.componentDidMount();
 
-        const autoFocus = this.props.autoFocus;
-        if (autoFocus) {
-            requestFocus(autoFocus.id, this, autoFocus.focus || (() => { if (this._isMounted) { this.focus(); } }));
+        if (this.props.autoFocus) {
+            requestFocus(this, () => { if (this._isMounted) { this.focus(); } }, this.props.accessibilityId);
         }
 
         // If we are mounted as visible, do our initialization now. If we are hidden, it will

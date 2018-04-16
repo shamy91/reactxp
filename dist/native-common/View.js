@@ -191,11 +191,10 @@ var View = /** @class */ (function (_super) {
         if (this._mixin_componentDidMount) {
             this._mixin_componentDidMount();
         }
-        var autoFocus = this.props.autoFocus;
-        if (autoFocus) {
-            AutoFocusHelper_1.requestFocus(autoFocus.id, this, autoFocus.focus || (function () { if (_this._isMounted) {
+        if (this.props.autoFocus) {
+            AutoFocusHelper_1.requestFocus(this, function () { if (_this._isMounted) {
                 _this.focus();
-            } }));
+            } }, this.props.accessibilityId);
         }
     };
     View.prototype.componentWillUnmount = function () {
