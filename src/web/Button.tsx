@@ -124,7 +124,7 @@ export class Button extends React.Component<Types.ButtonProps, {}> {
         this._isMounted = true;
 
         if (this.props.autoFocus) {
-            requestFocus(this, () => { if (this._isMounted) { this.focus(); } }, this.props.accessibilityId);
+            requestFocus(this, () => this.focus(), () => this._isMounted, this.props.accessibilityId);
         }
     }
 

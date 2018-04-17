@@ -166,9 +166,7 @@ var Button = /** @class */ (function (_super) {
         var _this = this;
         this._isMounted = true;
         if (this.props.autoFocus) {
-            AutoFocusHelper_1.requestFocus(this, function () { if (_this._isMounted) {
-                _this.focus();
-            } }, this.props.accessibilityId);
+            AutoFocusHelper_1.requestFocus(this, function () { return _this.focus(); }, function () { return _this._isMounted; }, this.props.accessibilityId);
         }
     };
     Button.prototype.componentWillUnmount = function () {

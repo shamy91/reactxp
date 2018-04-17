@@ -28,11 +28,12 @@ function setFocusArbitrator(arbitrator) {
     _arbitrator = arbitrator;
 }
 exports.setFocusArbitrator = setFocusArbitrator;
-function requestFocus(component, focus, accessibilityId) {
+function requestFocus(component, focus, isAvailable, accessibilityId) {
     _pendingAutoFocusItems.push({
         accessibilityId: accessibilityId,
         component: component,
-        focus: focus
+        focus: focus,
+        isAvailable: isAvailable
     });
     if (_autoFocusTimer) {
         clearTimeout(_autoFocusTimer);
@@ -41,6 +42,10 @@ function requestFocus(component, focus, accessibilityId) {
     // the same tick.
     _autoFocusTimer = setTimeout(function () {
         _autoFocusTimer = undefined;
+        // Filtering out everything which is already unmounted.
+        _pendingAutoFocusItems = _pendingAutoFocusItems.filter(function (item) {
+            return item.isAvailable();
+        });
         if (_sortAndFilter) {
             _pendingAutoFocusItems = _sortAndFilter(_pendingAutoFocusItems);
         }

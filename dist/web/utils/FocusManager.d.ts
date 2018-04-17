@@ -13,6 +13,7 @@ export declare class FocusManager extends FocusManagerBase {
     protected focusComponent(component: FocusableComponentInternal): boolean;
     static setLastFocusedProgrammatically(element: HTMLElement | undefined): void;
     static getLastFocusedProgrammatically(reset?: boolean): HTMLElement | undefined;
+    private static _isComponentAvailable(storedComponent);
     private static _getFirstFocusable(last?, parent?);
     static focusFirst(last?: boolean): void;
     protected resetFocus(): void;

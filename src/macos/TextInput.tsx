@@ -44,7 +44,7 @@ export class TextInput extends React.Component<Types.TextInputProps, TextInputSt
 
     componentDidMount() {
         if (this.props.autoFocus) {
-            requestFocus(this, () => this.focus, this.props.accessibilityId);
+            requestFocus(this, () => this.focus(), () => !!this._mountedComponent, this.props.accessibilityId);
         }
     }
 

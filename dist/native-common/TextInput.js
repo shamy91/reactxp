@@ -113,7 +113,7 @@ var TextInput = /** @class */ (function (_super) {
     TextInput.prototype.componentDidMount = function () {
         var _this = this;
         if (this.props.autoFocus) {
-            AutoFocusHelper_1.requestFocus(this, function () { return _this.focus(); }, this.props.accessibilityId);
+            AutoFocusHelper_1.requestFocus(this, function () { return _this.focus(); }, function () { return !!_this._mountedComponent; }, this.props.accessibilityId);
         }
     };
     TextInput.prototype._render = function (props) {

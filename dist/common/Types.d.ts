@@ -290,6 +290,7 @@ export interface FocusCandidate {
     accessibilityId?: string;
     component: React.Component<any, any>;
     focus: () => void;
+    isAvailable: () => boolean;
 }
 export interface CommonStyledProps<T> extends CommonProps {
     style?: StyleRuleSetRecursive<T>;

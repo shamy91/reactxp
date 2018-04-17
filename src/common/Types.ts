@@ -466,6 +466,9 @@ export interface FocusCandidate {
     component: React.Component<any, any>; // An instance of the component which wants to
                                           // be focused.
     focus: () => void; // A function to call to focus the component.
+    isAvailable: () => boolean; // Due to asynchronous nature of the focus arbitrator,
+                                // we need a flag to find out that the component is still
+                                // mounted and ready to be focused.
 }
 
 export interface CommonStyledProps<T> extends CommonProps {

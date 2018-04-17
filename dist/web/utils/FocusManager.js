@@ -106,18 +106,19 @@ var FocusManager = /** @class */ (function (_super) {
         }
         return ret;
     };
+    FocusManager._isComponentAvailable = function (storedComponent) {
+        return !storedComponent.removed &&
+            !storedComponent.restricted &&
+            storedComponent.limitedCount === 0 &&
+            storedComponent.limitedCountAccessible === 0;
+    };
     FocusManager._getFirstFocusable = function (last, parent) {
         var focusable = Object.keys(FocusManager._allFocusableComponents)
             .filter(function (componentId) { return !parent || (componentId in parent._myFocusableComponentIds); })
             .map(function (componentId) { return FocusManager._allFocusableComponents[componentId]; })
-            .filter(function (storedComponent) {
-            return !storedComponent.removed &&
-                !storedComponent.restricted &&
-                storedComponent.limitedCount === 0 &&
-                storedComponent.limitedCountAccessible === 0;
-        })
+            .filter(FocusManager._isComponentAvailable)
             .map(function (storedComponent) { return { storedComponent: storedComponent, el: ReactDOM.findDOMNode(storedComponent.component) }; })
-            .filter(function (f) { return f.el && f.el.focus && ((f.el.tabIndex || 0) >= 0); });
+            .filter(function (f) { return f.el && f.el.focus && ((f.el.tabIndex || 0) >= 0) && !f.el.disabled; });
         if (focusable.length) {
             focusable.sort(function (a, b) {
                 // Some element which is mounted later could come earlier in the DOM,
@@ -133,13 +134,12 @@ var FocusManager = /** @class */ (function (_super) {
     };
     FocusManager.focusFirst = function (last) {
         var first = FocusManager._getFirstFocusable(last);
-        if (first && !first.storedComponent.removed && !first.storedComponent.restricted) {
-            AutoFocusHelper_1.requestFocus(first.storedComponent.component, function () {
-                if (!first.storedComponent.removed) {
-                    FocusManager.setLastFocusedProgrammatically(first.el);
-                    first.el.focus();
-                }
-            }, AutoFocusHelper_1.FirstFocusableId);
+        if (first) {
+            var storedComponent_1 = first.storedComponent;
+            AutoFocusHelper_1.requestFocus(storedComponent_1.component, function () {
+                FocusManager.setLastFocusedProgrammatically(first.el);
+                first.el.focus();
+            }, function () { return FocusManager._isComponentAvailable(storedComponent_1); }, AutoFocusHelper_1.FirstFocusableId);
         }
     };
     FocusManager.prototype.resetFocus = function () {
@@ -152,13 +152,12 @@ var FocusManager = /** @class */ (function (_super) {
             // first focusable component to be focused straight away, without the
             // necessity to press Tab.
             var first_1 = FocusManager._getFirstFocusable(false, FocusManager._currentRestrictionOwner);
-            if (first_1 && !first_1.storedComponent.removed && !first_1.storedComponent.restricted) {
-                AutoFocusHelper_1.requestFocus(first_1.storedComponent.component, function () {
-                    if (!first_1.storedComponent.removed) {
-                        FocusManager.setLastFocusedProgrammatically(first_1.el);
-                        first_1.el.focus();
-                    }
-                }, AutoFocusHelper_1.FirstFocusableId);
+            if (first_1) {
+                var storedComponent_2 = first_1.storedComponent;
+                AutoFocusHelper_1.requestFocus(storedComponent_2.component, function () {
+                    FocusManager.setLastFocusedProgrammatically(first_1.el);
+                    first_1.el.focus();
+                }, function () { return FocusManager._isComponentAvailable(storedComponent_2); }, AutoFocusHelper_1.FirstFocusableId);
             }
         }
         else if ((typeof document !== 'undefined') && document.body && document.body.focus && document.body.blur) {
@@ -283,10 +282,7 @@ var FocusManager = /** @class */ (function (_super) {
             var id = candidate.component.focusableComponentId;
             if (id) {
                 var storedComponent = FocusManager._allFocusableComponents[id];
-                if (storedComponent && (storedComponent.removed ||
-                    storedComponent.restricted ||
-                    storedComponent.limitedCount > 0 ||
-                    storedComponent.limitedCountAccessible > 0)) {
+                if (storedComponent && !FocusManager._isComponentAvailable(storedComponent)) {
                     return false;
                 }
             }

@@ -34,11 +34,14 @@ export function setFocusArbitrator(arbitrator: Types.FocusArbitrator) {
     _arbitrator = arbitrator;
 }
 
-export function requestFocus(component: React.Component<any, any>, focus: () => void, accessibilityId?: string): void {
+export function requestFocus(component: React.Component<any, any>, focus: () => void, isAvailable: () => boolean,
+        accessibilityId?: string): void {
+
     _pendingAutoFocusItems.push({
         accessibilityId,
         component,
-        focus
+        focus,
+        isAvailable
     });
 
     if (_autoFocusTimer) {
@@ -49,6 +52,11 @@ export function requestFocus(component: React.Component<any, any>, focus: () => 
     // the same tick.
     _autoFocusTimer = setTimeout(() => {
         _autoFocusTimer = undefined;
+
+        // Filtering out everything which is already unmounted.
+        _pendingAutoFocusItems = _pendingAutoFocusItems.filter(item => {
+            return item.isAvailable();
+        });
 
         if (_sortAndFilter) {
             _pendingAutoFocusItems = _sortAndFilter(_pendingAutoFocusItems);
