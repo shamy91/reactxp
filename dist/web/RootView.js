@@ -158,20 +158,26 @@ var RootView = /** @class */ (function (_super) {
             // screen reader.
             _this._cancelApplicationIsNotActive();
             var target = e.target;
-            var prev = _this._prevFocusedElement;
-            var curShouldEnable = _this._shouldEnableKeyboardNavigationModeOnFocus;
-            _this._prevFocusedElement = target;
-            _this._shouldEnableKeyboardNavigationModeOnFocus = true;
-            if (_this._applicationIsNotActive) {
-                _this._applicationIsNotActive = false;
-                return;
+            if (_this._updateKeyboardNavigationModeOnFocusTimer) {
+                clearTimeout(_this._updateKeyboardNavigationModeOnFocusTimer);
             }
-            if ((prev === target) || (target === FocusManager_1.default.getLastFocusedProgrammatically(true))) {
-                return;
-            }
-            if (!_this._isNavigatingWithKeyboard && curShouldEnable) {
-                _this._updateKeyboardNavigationState(true);
-            }
+            _this._updateKeyboardNavigationModeOnFocusTimer = setTimeout(function () {
+                _this._updateKeyboardNavigationModeOnFocusTimer = undefined;
+                var prev = _this._prevFocusedElement;
+                var curShouldEnable = _this._shouldEnableKeyboardNavigationModeOnFocus;
+                _this._prevFocusedElement = target;
+                _this._shouldEnableKeyboardNavigationModeOnFocus = true;
+                if (_this._applicationIsNotActive) {
+                    _this._applicationIsNotActive = false;
+                    return;
+                }
+                if ((prev === target) || (target === FocusManager_1.default.getLastFocusedProgrammatically(true))) {
+                    return;
+                }
+                if (!_this._isNavigatingWithKeyboard && curShouldEnable) {
+                    _this._updateKeyboardNavigationState(true);
+                }
+            }, 0);
         };
         _this._onFocusOut = function (e) {
             // If the focus is out and nothing is focused after some time, most likely

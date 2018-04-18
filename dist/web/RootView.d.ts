@@ -46,6 +46,7 @@ export declare class RootView extends React.Component<RootViewProps, RootViewSta
     private _applicationIsNotActive;
     private _applicationIsNotActiveTimer;
     private _prevFocusedElement;
+    private _updateKeyboardNavigationModeOnFocusTimer;
     constructor(props: RootViewProps);
     getChildContext(): {
         focusManager: FocusManager;
