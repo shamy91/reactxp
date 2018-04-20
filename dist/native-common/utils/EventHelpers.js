@@ -27,8 +27,12 @@ var EventHelpers = /** @class */ (function () {
             }
             else {
                 switch (keyName) {
+                    // Comma in UWP is not in VirtualKey enum and so comes as stringified int value.
+                    case '188':
+                        keyCode = 188;
+                        break;
                     case 'Backspace':
-                    case 'Delete':
+                    case 'Back':
                         keyCode = 8;
                         break;
                     case 'Tab':
@@ -44,6 +48,7 @@ var EventHelpers = /** @class */ (function () {
                         keyCode = 17;
                         break;
                     case 'Alt':
+                    case 'Menu':
                         keyCode = 18;
                         break;
                     case 'Escape':
@@ -51,6 +56,9 @@ var EventHelpers = /** @class */ (function () {
                         break;
                     case 'Space':
                         keyCode = 32;
+                        break;
+                    case 'Delete':
+                        keyCode = 46;
                         break;
                     case 'PageUp':
                         keyCode = 92;
@@ -73,6 +81,36 @@ var EventHelpers = /** @class */ (function () {
                     case 'Down':
                     case 'ArrowDown':
                         keyCode = 20;
+                        break;
+                    case 'Number0':
+                        keyCode = 48;
+                        break;
+                    case 'Number1':
+                        keyCode = 49;
+                        break;
+                    case 'Number2':
+                        keyCode = 50;
+                        break;
+                    case 'Number3':
+                        keyCode = 51;
+                        break;
+                    case 'Number4':
+                        keyCode = 52;
+                        break;
+                    case 'Number5':
+                        keyCode = 53;
+                        break;
+                    case 'Number6':
+                        keyCode = 54;
+                        break;
+                    case 'Number7':
+                        keyCode = 55;
+                        break;
+                    case 'Number8':
+                        keyCode = 56;
+                        break;
+                    case 'Number9':
+                        keyCode = 57;
                         break;
                 }
             }
