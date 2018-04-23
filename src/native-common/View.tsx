@@ -12,9 +12,10 @@ import _ = require('./lodashMini');
 import assert = require('assert');
 import React = require('react');
 import RN = require('react-native');
+import PropTypes = require('prop-types');
 
 import AccessibilityUtil from './AccessibilityUtil';
-import { requestFocus } from '../common/utils/AutoFocusHelper';
+import { FocusArbitratorProvider, requestFocus } from '../common/utils/AutoFocusHelper';
 
 import Animated from './Animated';
 import EventHelpers from './utils/EventHelpers';
@@ -117,7 +118,21 @@ function _childrenEdited(prevChildrenKeys: ChildKey[], nextChildrenKeys: ChildKe
     return false;
 }
 
+export interface ViewContext {
+    focusArbitrator?: FocusArbitratorProvider;
+}
+
 export class View extends ViewBase<Types.ViewProps, {}> {
+    static contextTypes: React.ValidationMap<any> = {
+        focusArbitrator: PropTypes.object
+    };
+
+    context!: ViewContext;
+
+    static childContextTypes: React.ValidationMap<any> = {
+        focusArbitrator: PropTypes.object
+    };
+
     protected _internalProps: any = {};
 
     // Assigned when mixin is applied
@@ -141,15 +156,25 @@ export class View extends ViewBase<Types.ViewProps, {}> {
     private _opacityAnimatedValue: RN.Animated.Value|undefined;
     private _opacityAnimatedStyle: Types.AnimatedViewStyleRuleSet|undefined;
 
-    constructor(props: Types.ViewProps) {
-        super(props);
+    private _focusArbitratorProvider: FocusArbitratorProvider|undefined;
+
+    constructor(props: Types.ViewProps, context: ViewContext) {
+        super(props, context);
         this._updateMixin(props, true);
         this._buildInternalProps(props);
+
+        if (props.arbitrateFocus) {
+            this._updateFocusArbitratorProvider(props);
+        }
     }
 
     componentWillReceiveProps(nextProps: Types.ViewProps) {
         this._updateMixin(nextProps, false);
         this._buildInternalProps(nextProps);
+
+        if (('arbitrateFocus' in nextProps) && (this.props.arbitrateFocus !== nextProps.arbitrateFocus)) {
+            this._updateFocusArbitratorProvider(nextProps);
+        }
     }
 
     componentWillUpdate(nextProps: Types.ViewProps, nextState: {}) {
@@ -277,6 +302,16 @@ export class View extends ViewBase<Types.ViewProps, {}> {
         }
     }
 
+    getChildContext() {
+        let childContext: ViewContext = {};
+
+        if (this._focusArbitratorProvider) {
+            childContext.focusArbitrator = this._focusArbitratorProvider;
+        }
+
+        return childContext;
+    }
+
     /**
      * Attention:
      * be careful with setting any non layout properties unconditionally in this method to any value
@@ -394,6 +429,18 @@ export class View extends ViewBase<Types.ViewProps, {}> {
 
     protected _isButton(viewProps: Types.ViewProps): boolean {
         return !!(viewProps.onPress || viewProps.onLongPress);
+    }
+
+    private _updateFocusArbitratorProvider(props: Types.ViewProps) {
+        if (props.arbitrateFocus) {
+            if (this._focusArbitratorProvider) {
+                this._focusArbitratorProvider.setCallback(props.arbitrateFocus);
+            } else {
+                this._focusArbitratorProvider = new FocusArbitratorProvider(this, props.arbitrateFocus);
+            }
+        } else if (this._focusArbitratorProvider) {
+            delete this._focusArbitratorProvider;
+        }
     }
 
     render() {

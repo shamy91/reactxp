@@ -128,6 +128,9 @@ var Text = /** @class */ (function (_super) {
             el.focus();
         }
     };
+    Text.contextTypes = {
+        focusArbitrator: PropTypes.object
+    };
     Text.childContextTypes = {
         isRxParentAText: PropTypes.bool.isRequired
     };

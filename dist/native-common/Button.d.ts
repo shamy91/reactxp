@@ -2,14 +2,18 @@
 import React = require('react');
 import RN = require('react-native');
 import PropTypes = require('prop-types');
+import { FocusArbitratorProvider } from '../common/utils/AutoFocusHelper';
 import Types = require('../common/Types');
 export interface ButtonContext {
     hasRxButtonAscendant?: boolean;
+    focusArbitrator?: FocusArbitratorProvider;
 }
 export declare class Button extends React.Component<Types.ButtonProps, {}> {
     static contextTypes: {
         hasRxButtonAscendant: PropTypes.Requireable<any> & PropTypes.Validator<any>;
+        focusArbitrator: PropTypes.Requireable<any> & PropTypes.Validator<any>;
     };
+    context: ButtonContext;
     static childContextTypes: {
         hasRxButtonAscendant: PropTypes.Requireable<any> & PropTypes.Validator<any>;
     };

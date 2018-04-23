@@ -10,9 +10,9 @@
 import React = require('react');
 import RN = require('react-native');
 import Types = require('../common/Types');
-import { View as ViewCommon } from '../native-common/View';
+import { View as ViewCommon, ViewContext as ViewContextCommon } from '../native-common/View';
 import { FocusManagerFocusableComponent, FocusManager } from '../native-desktop/utils/FocusManager';
-export interface ViewContext {
+export interface ViewContext extends ViewContextCommon {
     isRxParentAText?: boolean;
     focusManager?: FocusManager;
 }

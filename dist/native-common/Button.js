@@ -309,7 +309,8 @@ var Button = /** @class */ (function (_super) {
         });
     };
     Button.contextTypes = {
-        hasRxButtonAscendant: PropTypes.bool
+        hasRxButtonAscendant: PropTypes.bool,
+        focusArbitrator: PropTypes.object
     };
     Button.childContextTypes = {
         hasRxButtonAscendant: PropTypes.bool

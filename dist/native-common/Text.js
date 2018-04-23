@@ -86,6 +86,9 @@ var Text = /** @class */ (function (_super) {
     Text.prototype.blur = function () {
         // No-op
     };
+    Text.contextTypes = {
+        focusArbitrator: PropTypes.object
+    };
     Text.childContextTypes = {
         isRxParentAText: PropTypes.bool.isRequired,
     };

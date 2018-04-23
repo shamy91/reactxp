@@ -204,7 +204,8 @@ var Button = /** @class */ (function (_super) {
         return Styles_1.default.combine([_styles.defaultButton, buttonStyles, buttonStyleMutations]);
     };
     Button.contextTypes = {
-        hasRxButtonAscendant: PropTypes.bool
+        hasRxButtonAscendant: PropTypes.bool,
+        focusArbitrator: PropTypes.object
     };
     Button.childContextTypes = {
         hasRxButtonAscendant: PropTypes.bool

@@ -19,6 +19,7 @@ var __extends = (this && this.__extends) || (function () {
 })();
 Object.defineProperty(exports, "__esModule", { value: true });
 var React = require("react");
+var PropTypes = require("prop-types");
 var AutoFocusHelper_1 = require("../common/utils/AutoFocusHelper");
 var Styles_1 = require("./Styles");
 var FocusManager_1 = require("./utils/FocusManager");
@@ -42,8 +43,8 @@ var _styles = {
 };
 var TextInput = /** @class */ (function (_super) {
     __extends(TextInput, _super);
-    function TextInput(props) {
-        var _this = _super.call(this, props) || this;
+    function TextInput(props, context) {
+        var _this = _super.call(this, props, context) || this;
         _this._mountedComponent = null;
         _this._selectionStart = 0;
         _this._selectionEnd = 0;
@@ -271,6 +272,9 @@ var TextInput = /** @class */ (function (_super) {
                 this.props.onChangeText(value);
             }
         }
+    };
+    TextInput.contextTypes = {
+        focusArbitrator: PropTypes.object
     };
     return TextInput;
 }(React.Component));

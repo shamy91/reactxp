@@ -28,6 +28,7 @@ var __assign = (this && this.__assign) || Object.assign || function(t) {
 Object.defineProperty(exports, "__esModule", { value: true });
 var React = require("react");
 var RN = require("react-native");
+var PropTypes = require("prop-types");
 var AccessibilityUtil_1 = require("./AccessibilityUtil");
 var AutoFocusHelper_1 = require("../common/utils/AutoFocusHelper");
 var EventHelpers_1 = require("./utils/EventHelpers");
@@ -40,8 +41,8 @@ var _styles = {
 };
 var TextInput = /** @class */ (function (_super) {
     __extends(TextInput, _super);
-    function TextInput(props) {
-        var _this = _super.call(this, props) || this;
+    function TextInput(props, context) {
+        var _this = _super.call(this, props, context) || this;
         _this._selection = { start: 0, end: 0 };
         _this._mountedComponent = null;
         _this._onMount = function (component) {
@@ -192,6 +193,9 @@ var TextInput = /** @class */ (function (_super) {
     };
     TextInput.prototype.setValue = function (value) {
         this._onChangeText(value);
+    };
+    TextInput.contextTypes = {
+        focusArbitrator: PropTypes.object
     };
     return TextInput;
 }(React.Component));

@@ -8,6 +8,7 @@
 * Web-specific implementation of the cross-platform View abstraction.
 */
 import React = require('react');
+import { FocusArbitratorProvider } from '../common/utils/AutoFocusHelper';
 import Types = require('../common/Types');
 import ViewBase from './ViewBase';
 import { PopupContainer } from './PopupContainer';
@@ -16,6 +17,7 @@ export interface ViewContext {
     isRxParentAText?: boolean;
     focusManager?: FocusManager;
     popupContainer?: PopupContainer;
+    focusArbitrator?: FocusArbitratorProvider;
 }
 export declare class View extends ViewBase<Types.ViewProps, {}> {
     static contextTypes: React.ValidationMap<any>;
@@ -25,6 +27,7 @@ export declare class View extends ViewBase<Types.ViewProps, {}> {
     private _limitFocusWithin;
     private _isFocusLimited;
     private _isFocusRestricted;
+    private _focusArbitratorProvider;
     private _resizeDetectorAnimationFrame;
     private _resizeDetectorNodes;
     private _popupContainer;
@@ -36,6 +39,7 @@ export declare class View extends ViewBase<Types.ViewProps, {}> {
     getChildContext(): ViewContext;
     protected _getContainer(): HTMLElement | null;
     private isHidden();
+    private _updateFocusArbitratorProvider(props);
     setFocusRestricted(restricted: boolean): void;
     setFocusLimited(limited: boolean): void;
     render(): React.ReactElement<any>;

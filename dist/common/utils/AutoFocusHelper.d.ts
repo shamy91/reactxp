@@ -11,8 +11,23 @@
 */
 import React = require('react');
 import Types = require('../Types');
+import Interfaces = require('../Interfaces');
 export declare const FirstFocusableId = "reactxp-first-focusable";
 export declare type SortAndFilterFunc = (candidates: Types.FocusCandidate[]) => Types.FocusCandidate[];
 export declare function setSortAndFilterFunc(sortAndFilter: SortAndFilterFunc): void;
-export declare function setFocusArbitrator(arbitrator: Types.FocusArbitrator): void;
+export declare class FocusArbitratorProvider {
+    private _id;
+    private _parentArbitratorProvider;
+    private _view;
+    private _arbitratorCallback;
+    private _candidates;
+    private _pendingChildren;
+    constructor(view?: Interfaces.View, arbitrator?: Types.FocusArbitrator);
+    private _notifyParent();
+    private _arbitrate();
+    private _requestFocus(component, focus, isAvailable, accessibilityId?);
+    private static _arbitrate(candidates, arbitrator?);
+    setCallback(arbitrator?: Types.FocusArbitrator): void;
+    static requestFocus(component: React.Component<any, any>, focus: () => void, isAvailable: () => boolean, accessibilityId?: string): void;
+}
 export declare function requestFocus(component: React.Component<any, any>, focus: () => void, isAvailable: () => boolean, accessibilityId?: string): void;

@@ -456,13 +456,15 @@ export enum AccessibilityTrait {
 // the default logic will be used (which is to focus last component queued or first focusable
 // inside a View with restrictFocusWithin when it's mounted).
 // See https://microsoft.github.io/reactxp/docs/apis/focusutils.html
-export type FocusArbitrator = (candidates: FocusCandidate[]) => boolean;
+export type FocusArbitrator = (candidates: FocusCandidate[]) => FocusCandidate | undefined;
 
 // FocusArbitrator function will be called with an array of FocusCandidate.
 // See https://microsoft.github.io/reactxp/docs/apis/focusutils.html
 export interface FocusCandidate {
     accessibilityId?: string; // Optional accessibilityId might specify in the properties of the
                               // component with autoFocus=true or FocusUtils.FirstFocusableId.
+    parentAccessibilityId?: string; // If the candidate is inside the View with arbitrateFocus property
+                                    // specified, this will be accessibilityId of that View.
     component: React.Component<any, any>; // An instance of the component which wants to
                                           // be focused.
     focus: () => void; // A function to call to focus the component.
@@ -615,6 +617,8 @@ export interface ViewPropsShared extends CommonProps, CommonAccessibilityProps {
     limitFocusWithin?: LimitFocusType; // Web-only, make the view and all focusable subelements not focusable
 
     autoFocus?: boolean; // The component is a candidate for being autofocused.
+    arbitrateFocus?: FocusArbitrator; // When multiple components inside this View are setting autoFocus=true, this callback
+                                      // will be called so that the application can decide which one needs to be focused.
 
     importantForLayout?: boolean; // Web-only, additional invisible DOM elements will be added to track the size changes faster
     id?: string; // Web-only. Needed for accessibility.

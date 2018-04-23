@@ -1,9 +1,16 @@
 /// <reference types="react" />
 import React = require('react');
 import RN = require('react-native');
+import { FocusArbitratorProvider } from '../common/utils/AutoFocusHelper';
 import Types = require('../common/Types');
 import ViewBase from './ViewBase';
+export interface ViewContext {
+    focusArbitrator?: FocusArbitratorProvider;
+}
 export declare class View extends ViewBase<Types.ViewProps, {}> {
+    static contextTypes: React.ValidationMap<any>;
+    context: ViewContext;
+    static childContextTypes: React.ValidationMap<any>;
     protected _internalProps: any;
     touchableGetInitialState: () => RN.Touchable.State;
     touchableHandleStartShouldSetResponder: () => boolean;
@@ -21,12 +28,14 @@ export declare class View extends ViewBase<Types.ViewProps, {}> {
     private _defaultOpacityValue;
     private _opacityAnimatedValue;
     private _opacityAnimatedStyle;
-    constructor(props: Types.ViewProps);
+    private _focusArbitratorProvider;
+    constructor(props: Types.ViewProps, context: ViewContext);
     componentWillReceiveProps(nextProps: Types.ViewProps): void;
     componentWillUpdate(nextProps: Types.ViewProps, nextState: {}): void;
     componentDidMount(): void;
     componentWillUnmount(): void;
     private _updateMixin(props, initial);
+    getChildContext(): ViewContext;
     /**
      * Attention:
      * be careful with setting any non layout properties unconditionally in this method to any value
@@ -41,6 +50,7 @@ export declare class View extends ViewBase<Types.ViewProps, {}> {
     private _showUnderlay();
     private _hideUnderlay;
     protected _isButton(viewProps: Types.ViewProps): boolean;
+    private _updateFocusArbitratorProvider(props);
     render(): JSX.Element;
     touchableHandlePress(e: Types.SyntheticEvent): void;
     touchableHandleLongPress(e: Types.SyntheticEvent): void;

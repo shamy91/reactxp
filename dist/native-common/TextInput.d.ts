@@ -9,16 +9,22 @@
 */
 import React = require('react');
 import RN = require('react-native');
+import { FocusArbitratorProvider } from '../common/utils/AutoFocusHelper';
 import Types = require('../common/Types');
 export interface TextInputState {
     inputValue: string;
     isFocused: boolean;
 }
+export interface TextInputContext {
+    focusArbitrator?: FocusArbitratorProvider;
+}
 export declare class TextInput extends React.Component<Types.TextInputProps, TextInputState> {
+    static contextTypes: React.ValidationMap<any>;
+    context: TextInputContext;
     private _selectionToSet;
     private _selection;
     protected _mountedComponent: RN.ReactNativeBaseComponent<any, any> | null;
-    constructor(props: Types.TextInputProps);
+    constructor(props: Types.TextInputProps, context: TextInputContext);
     componentWillReceiveProps(nextProps: Types.TextInputProps): void;
     componentDidMount(): void;
     protected _render(props: RN.TextInputProps): JSX.Element;

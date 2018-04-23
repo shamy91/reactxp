@@ -12,7 +12,6 @@ var AutoFocusHelper_1 = require("./utils/AutoFocusHelper");
 var FocusUtils = /** @class */ (function () {
     function FocusUtils() {
         this.FirstFocusableId = AutoFocusHelper_1.FirstFocusableId;
-        this.setFocusArbitrator = AutoFocusHelper_1.setFocusArbitrator;
         this.requestFocus = AutoFocusHelper_1.requestFocus;
     }
     return FocusUtils;

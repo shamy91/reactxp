@@ -97,6 +97,9 @@ var View = /** @class */ (function (_super) {
             }
         }
         _this._popupContainer = context.popupContainer;
+        if (props.arbitrateFocus) {
+            _this._updateFocusArbitratorProvider(props);
+        }
         return _this;
     }
     View.prototype._renderResizeDetectorIfNeeded = function (containerStyles) {
@@ -181,6 +184,9 @@ var View = /** @class */ (function (_super) {
         if (this._popupContainer) {
             childContext.popupContainer = this._popupContainer;
         }
+        if (this._focusArbitratorProvider) {
+            childContext.focusArbitrator = this._focusArbitratorProvider;
+        }
         return childContext;
     };
     View.prototype._getContainer = function () {
@@ -188,6 +194,19 @@ var View = /** @class */ (function (_super) {
     };
     View.prototype.isHidden = function () {
         return !!this._popupContainer && this._popupContainer.isHidden();
+    };
+    View.prototype._updateFocusArbitratorProvider = function (props) {
+        if (props.arbitrateFocus) {
+            if (this._focusArbitratorProvider) {
+                this._focusArbitratorProvider.setCallback(props.arbitrateFocus);
+            }
+            else {
+                this._focusArbitratorProvider = new AutoFocusHelper_1.FocusArbitratorProvider(this, props.arbitrateFocus);
+            }
+        }
+        else if (this._focusArbitratorProvider) {
+            delete this._focusArbitratorProvider;
+        }
     };
     View.prototype.setFocusRestricted = function (restricted) {
         if (!this._focusManager || !this.props.restrictFocusWithin) {
@@ -299,6 +318,9 @@ var View = /** @class */ (function (_super) {
                 console.error('View: limitFocusWithin is readonly and changing it during the component life cycle has no effect');
             }
         }
+        if (('arbitrateFocus' in nextProps) && (this.props.arbitrateFocus !== nextProps.arbitrateFocus)) {
+            this._updateFocusArbitratorProvider(nextProps);
+        }
     };
     View.prototype.enableFocusManager = function () {
         if (this._focusManager) {
@@ -340,12 +362,14 @@ var View = /** @class */ (function (_super) {
     View.contextTypes = {
         isRxParentAText: PropTypes.bool,
         focusManager: PropTypes.object,
-        popupContainer: PropTypes.object
+        popupContainer: PropTypes.object,
+        focusArbitrator: PropTypes.object
     };
     View.childContextTypes = {
         isRxParentAText: PropTypes.bool.isRequired,
         focusManager: PropTypes.object,
-        popupContainer: PropTypes.object
+        popupContainer: PropTypes.object,
+        focusArbitrator: PropTypes.object
     };
     return View;
 }(ViewBase_1.default));

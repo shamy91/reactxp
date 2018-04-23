@@ -7,10 +7,9 @@
 * Publicly accessible functions for managing the focus.
 */
 import RXInterfaces = require('./Interfaces');
-import { requestFocus, setFocusArbitrator } from './utils/AutoFocusHelper';
+import { requestFocus } from './utils/AutoFocusHelper';
 export declare class FocusUtils implements RXInterfaces.FocusUtils {
     FirstFocusableId: string;
-    setFocusArbitrator: typeof setFocusArbitrator;
     requestFocus: typeof requestFocus;
 }
 declare const _default: FocusUtils;

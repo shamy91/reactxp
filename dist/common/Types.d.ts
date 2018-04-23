@@ -285,9 +285,10 @@ export declare enum AccessibilityTrait {
     Switch = 35,
     None = 36,
 }
-export declare type FocusArbitrator = (candidates: FocusCandidate[]) => boolean;
+export declare type FocusArbitrator = (candidates: FocusCandidate[]) => FocusCandidate | undefined;
 export interface FocusCandidate {
     accessibilityId?: string;
+    parentAccessibilityId?: string;
     component: React.Component<any, any>;
     focus: () => void;
     isAvailable: () => boolean;
@@ -384,6 +385,7 @@ export interface ViewPropsShared extends CommonProps, CommonAccessibilityProps {
     restrictFocusWithin?: boolean;
     limitFocusWithin?: LimitFocusType;
     autoFocus?: boolean;
+    arbitrateFocus?: FocusArbitrator;
     importantForLayout?: boolean;
     id?: string;
     ariaLabelledBy?: string;

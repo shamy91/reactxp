@@ -44,7 +44,7 @@ var FocusableAnimatedView = RNW.createFocusableComponent(RN.Animated.View);
 var View = /** @class */ (function (_super) {
     __extends(View, _super);
     function View(props, context) {
-        var _this = _super.call(this, props) || this;
+        var _this = _super.call(this, props, context) || this;
         _this._focusableElement = null;
         _this._limitFocusWithin = false;
         _this._isFocusLimited = false;
@@ -249,9 +249,8 @@ var View = /** @class */ (function (_super) {
         // Let descendant RX components know that their nearest RX ancestor is not an RX.Text.
         // Because they're in an RX.View, they should use their normal styling rather than their
         // special styling for appearing inline with text.
-        var childContext = {
-            isRxParentAText: false
-        };
+        var childContext = _super.prototype.getChildContext.call(this);
+        childContext.isRxParentAText = false;
         // Provide the descendants with the focus manager (if any).
         if (this._focusManager) {
             childContext.focusManager = this._focusManager;
@@ -315,14 +314,8 @@ var View = /** @class */ (function (_super) {
             });
         }
     };
-    View.contextTypes = {
-        isRxParentAText: PropTypes.bool,
-        focusManager: PropTypes.object
-    };
-    View.childContextTypes = {
-        isRxParentAText: PropTypes.bool.isRequired,
-        focusManager: PropTypes.object
-    };
+    View.contextTypes = __assign({ isRxParentAText: PropTypes.bool, focusManager: PropTypes.object }, View_1.View.contextTypes);
+    View.childContextTypes = __assign({ isRxParentAText: PropTypes.bool.isRequired, focusManager: PropTypes.object }, View_1.View.childContextTypes);
     return View;
 }(View_1.View));
 exports.View = View;

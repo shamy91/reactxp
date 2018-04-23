@@ -30,6 +30,7 @@ var _ = require("./lodashMini");
 var assert = require("assert");
 var React = require("react");
 var RN = require("react-native");
+var PropTypes = require("prop-types");
 var AccessibilityUtil_1 = require("./AccessibilityUtil");
 var AutoFocusHelper_1 = require("../common/utils/AutoFocusHelper");
 var Animated_1 = require("./Animated");
@@ -113,8 +114,8 @@ function _childrenEdited(prevChildrenKeys, nextChildrenKeys) {
 }
 var View = /** @class */ (function (_super) {
     __extends(View, _super);
-    function View(props) {
-        var _this = _super.call(this, props) || this;
+    function View(props, context) {
+        var _this = _super.call(this, props, context) || this;
         _this._internalProps = {};
         _this._mixinIsApplied = false;
         _this._isMounted = false;
@@ -130,11 +131,17 @@ var View = /** @class */ (function (_super) {
         };
         _this._updateMixin(props, true);
         _this._buildInternalProps(props);
+        if (props.arbitrateFocus) {
+            _this._updateFocusArbitratorProvider(props);
+        }
         return _this;
     }
     View.prototype.componentWillReceiveProps = function (nextProps) {
         this._updateMixin(nextProps, false);
         this._buildInternalProps(nextProps);
+        if (('arbitrateFocus' in nextProps) && (this.props.arbitrateFocus !== nextProps.arbitrateFocus)) {
+            this._updateFocusArbitratorProvider(nextProps);
+        }
     };
     View.prototype.componentWillUpdate = function (nextProps, nextState) {
         //
@@ -243,6 +250,13 @@ var View = /** @class */ (function (_super) {
             this._mixinIsApplied = false;
         }
     };
+    View.prototype.getChildContext = function () {
+        var childContext = {};
+        if (this._focusArbitratorProvider) {
+            childContext.focusArbitrator = this._focusArbitratorProvider;
+        }
+        return childContext;
+    };
     /**
      * Attention:
      * be careful with setting any non layout properties unconditionally in this method to any value
@@ -334,6 +348,19 @@ var View = /** @class */ (function (_super) {
     View.prototype._isButton = function (viewProps) {
         return !!(viewProps.onPress || viewProps.onLongPress);
     };
+    View.prototype._updateFocusArbitratorProvider = function (props) {
+        if (props.arbitrateFocus) {
+            if (this._focusArbitratorProvider) {
+                this._focusArbitratorProvider.setCallback(props.arbitrateFocus);
+            }
+            else {
+                this._focusArbitratorProvider = new AutoFocusHelper_1.FocusArbitratorProvider(this, props.arbitrateFocus);
+            }
+        }
+        else if (this._focusArbitratorProvider) {
+            delete this._focusArbitratorProvider;
+        }
+    };
     View.prototype.render = function () {
         var PotentiallyAnimatedView = this._isButton(this.props) ? RN.Animated.View : RN.View;
         return (React.createElement(PotentiallyAnimatedView, __assign({}, this._internalProps), this.props.children));
@@ -400,6 +427,12 @@ var View = /** @class */ (function (_super) {
     };
     View.prototype.setFocusLimited = function (limited) {
         // Nothing to do.
+    };
+    View.contextTypes = {
+        focusArbitrator: PropTypes.object
+    };
+    View.childContextTypes = {
+        focusArbitrator: PropTypes.object
     };
     return View;
 }(ViewBase_1.default));
