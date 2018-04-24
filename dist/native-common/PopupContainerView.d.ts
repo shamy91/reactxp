@@ -1,12 +1,11 @@
 /// <reference types="react" />
-import React = require('react');
 import RN = require('react-native');
 import Types = require('../common/Types');
-export interface PopupContainerViewProps extends Types.CommonProps {
+import { PopupContainerViewBase, PopupContainerViewBaseProps, PopupContainerViewContext } from '../common/PopupContainerViewBase';
+export interface PopupContainerViewProps extends PopupContainerViewBaseProps {
     popupOptions: Types.PopupOptions;
     anchorHandle?: number;
     onDismissPopup?: () => void;
-    hidden: boolean;
 }
 export interface PopupContainerViewState {
     isMeasuringPopup: boolean;
@@ -19,11 +18,11 @@ export interface PopupContainerViewState {
     constrainedPopupWidth: number;
     constrainedPopupHeight: number;
 }
-export declare class PopupContainerView extends React.Component<PopupContainerViewProps, PopupContainerViewState> {
+export declare class PopupContainerView extends PopupContainerViewBase<PopupContainerViewProps, PopupContainerViewState> {
     private _mountedComponent;
     private _viewHandle;
     private _respositionPopupTimer;
-    constructor(props: PopupContainerViewProps);
+    constructor(props: PopupContainerViewProps, context: PopupContainerViewContext);
     private _getInitialState();
     componentWillReceiveProps(prevProps: PopupContainerViewProps): void;
     componentDidUpdate(prevProps: PopupContainerViewProps, prevState: PopupContainerViewState): void;

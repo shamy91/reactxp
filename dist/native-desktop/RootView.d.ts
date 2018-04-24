@@ -26,7 +26,7 @@ declare const RootViewUsingStore: {
             focusManager: FocusManager;
         };
         render(): JSX.Element;
-        setState<K extends never>(state: {} | ((prevState: Readonly<{}>, props: {}) => {} | Pick<{}, K> | null) | Pick<{}, K> | null, callback?: (() => void) | undefined): void;
+        setState<K extends never>(state: {} | ((prevState: Readonly<{}>, props: {}) => {} | Pick<{}, K>) | Pick<{}, K>, callback?: (() => void) | undefined): void;
         forceUpdate(callBack?: (() => void) | undefined): void;
         props: Readonly<{
             children?: React.ReactNode;
@@ -55,7 +55,7 @@ declare const RootViewUsingProps: {
             focusManager: FocusManager;
         };
         render(): JSX.Element;
-        setState<K extends never>(state: {} | ((prevState: Readonly<{}>, props: {}) => {} | Pick<{}, K> | null) | Pick<{}, K> | null, callback?: (() => void) | undefined): void;
+        setState<K extends never>(state: {} | ((prevState: Readonly<{}>, props: {}) => {} | Pick<{}, K>) | Pick<{}, K>, callback?: (() => void) | undefined): void;
         forceUpdate(callBack?: (() => void) | undefined): void;
         props: Readonly<{
             children?: React.ReactNode;

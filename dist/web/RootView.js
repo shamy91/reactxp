@@ -29,7 +29,7 @@ var Input_1 = require("./Input");
 var ModalContainer_1 = require("./ModalContainer");
 var FocusManager_1 = require("./utils/FocusManager");
 var UserInterface_1 = require("./UserInterface");
-var PopupContainer_1 = require("./PopupContainer");
+var PopupContainerView_1 = require("./PopupContainerView");
 var PopupDescriptor = /** @class */ (function () {
     function PopupDescriptor(popupId, popupOptions) {
         this.popupId = popupId;
@@ -314,7 +314,7 @@ var RootView = /** @class */ (function (_super) {
         var renderedPopup = (hidden ?
             popup.popupOptions.renderPopup('top', 0, 0, 0) :
             popup.popupOptions.renderPopup(this.state.anchorPosition, this.state.anchorOffset, this.state.constrainedPopupWidth, this.state.constrainedPopupHeight));
-        return (React.createElement(PopupContainer_1.default, { key: key, style: popupContainerStyle, hidden: hidden, ref: hidden ? undefined : this._onMount, onMouseEnter: function (e) { return _this._onMouseEnter(e); }, onMouseLeave: function (e) { return _this._onMouseLeave(e); } }, renderedPopup));
+        return (React.createElement(PopupContainerView_1.default, { key: key, style: popupContainerStyle, hidden: hidden, ref: hidden ? undefined : this._onMount, onMouseEnter: function (e) { return _this._onMouseEnter(e); }, onMouseLeave: function (e) { return _this._onMouseLeave(e); } }, renderedPopup));
     };
     RootView.prototype.render = function () {
         var _this = this;

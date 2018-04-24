@@ -94,6 +94,7 @@ var View = /** @class */ (function (_super) {
                 _this.setFocusLimited(true);
             }
         }
+        _this._popupContainer = context.popupContainer;
         return _this;
     }
     View.prototype.componentWillReceiveProps = function (nextProps) {
@@ -107,10 +108,9 @@ var View = /** @class */ (function (_super) {
             }
         }
     };
-    View.prototype.componentDidMount = function () {
-        _super.prototype.componentDidMount.call(this);
+    View.prototype.enableFocusManager = function () {
         if (this._focusManager) {
-            if (this.props.restrictFocusWithin) {
+            if (this.props.restrictFocusWithin && this._isFocusRestricted !== false) {
                 this._focusManager.restrictFocusWithin();
             }
             if (this._limitFocusWithin && this._isFocusLimited) {
@@ -118,10 +118,28 @@ var View = /** @class */ (function (_super) {
             }
         }
     };
-    View.prototype.componentWillUnmount = function () {
-        _super.prototype.componentWillUnmount.call(this);
+    View.prototype.disableFocusManager = function () {
         if (this._focusManager) {
             this._focusManager.release();
+        }
+    };
+    View.prototype.componentDidMount = function () {
+        var _this = this;
+        _super.prototype.componentDidMount.call(this);
+        // If we are mounted as visible, do our initialization now. If we are hidden, it will
+        // be done later when the popup is shown.
+        if (!this._isHidden()) {
+            this.enableFocusManager();
+        }
+        if (this._focusManager && this._popupContainer) {
+            this._popupToken = this._popupContainer.registerPopupComponent(function () { return _this.enableFocusManager(); }, function () { return _this.disableFocusManager(); });
+        }
+    };
+    View.prototype.componentWillUnmount = function () {
+        _super.prototype.componentWillUnmount.call(this);
+        this.disableFocusManager();
+        if (this._popupToken) {
+            this._popupContainer.unregisterPopupComponent(this._popupToken);
         }
     };
     View.prototype._buildInternalProps = function (props) {
@@ -255,33 +273,43 @@ var View = /** @class */ (function (_super) {
         if (this._focusManager) {
             childContext.focusManager = this._focusManager;
         }
+        if (this._popupContainer) {
+            childContext.popupContainer = this._popupContainer;
+        }
         return childContext;
+    };
+    View.prototype._isHidden = function () {
+        return !!this._popupContainer && this._popupContainer.isHidden();
     };
     View.prototype.setFocusRestricted = function (restricted) {
         if (!this._focusManager || !this.props.restrictFocusWithin) {
             console.error('View: setFocusRestricted method requires restrictFocusWithin property to be set to true');
             return;
         }
-        if (restricted) {
-            this._focusManager.restrictFocusWithin();
+        if (!this._isHidden()) {
+            if (restricted) {
+                this._focusManager.restrictFocusWithin();
+            }
+            else {
+                this._focusManager.removeFocusRestriction();
+            }
         }
-        else {
-            this._focusManager.removeFocusRestriction();
-        }
+        this._isFocusRestricted = restricted;
     };
     View.prototype.setFocusLimited = function (limited) {
         if (!this._focusManager || !this._limitFocusWithin) {
             console.error('View: setFocusLimited method requires limitFocusWithin property to be set');
             return;
         }
-        if (limited && !this._isFocusLimited) {
-            this._isFocusLimited = true;
-            this._focusManager.limitFocusWithin(this.props.limitFocusWithin);
+        if (!this._isHidden()) {
+            if (limited && !this._isFocusLimited) {
+                this._focusManager.limitFocusWithin(this.props.limitFocusWithin);
+            }
+            else if (!limited && this._isFocusLimited) {
+                this._focusManager.removeFocusLimitation();
+            }
         }
-        else if (!limited && this._isFocusLimited) {
-            this._isFocusLimited = false;
-            this._focusManager.removeFocusLimitation();
-        }
+        this._isFocusLimited = limited;
     };
     View.prototype.setNativeProps = function (nativeProps) {
         // Redirect to focusable component if present.
@@ -314,8 +342,8 @@ var View = /** @class */ (function (_super) {
             });
         }
     };
-    View.contextTypes = __assign({ isRxParentAText: PropTypes.bool, focusManager: PropTypes.object }, View_1.View.contextTypes);
-    View.childContextTypes = __assign({ isRxParentAText: PropTypes.bool.isRequired, focusManager: PropTypes.object }, View_1.View.childContextTypes);
+    View.contextTypes = __assign({ isRxParentAText: PropTypes.bool, focusManager: PropTypes.object, popupContainer: PropTypes.object }, View_1.View.contextTypes);
+    View.childContextTypes = __assign({ isRxParentAText: PropTypes.bool.isRequired, focusManager: PropTypes.object, popupContainer: PropTypes.object }, View_1.View.childContextTypes);
     return View;
 }(View_1.View));
 exports.View = View;

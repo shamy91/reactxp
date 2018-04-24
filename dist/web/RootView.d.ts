@@ -2,7 +2,7 @@
 import React = require('react');
 import Types = require('../common/Types');
 import FocusManager from './utils/FocusManager';
-import PopupContainer from './PopupContainer';
+import PopupContainerView from './PopupContainerView';
 export declare class PopupDescriptor {
     popupId: string;
     popupOptions: Types.PopupOptions;
@@ -58,7 +58,7 @@ export declare class RootView extends React.Component<RootViewProps, RootViewSta
     componentWillUnmount(): void;
     private _renderPopup(popup, hidden);
     render(): JSX.Element;
-    protected _onMount: (component: PopupContainer | null) => void;
+    protected _onMount: (component: PopupContainerView | null) => void;
     private _tryClosePopup;
     private _determineIfClickOnElement(elementReference, eventSource);
     private _onMouseDownCapture;

@@ -11,12 +11,12 @@ import React = require('react');
 import { FocusArbitratorProvider } from '../common/utils/AutoFocusHelper';
 import Types = require('../common/Types');
 import ViewBase from './ViewBase';
-import { PopupContainer } from './PopupContainer';
+import PopupContainerView from './PopupContainerView';
 import { FocusManager } from './utils/FocusManager';
 export interface ViewContext {
     isRxParentAText?: boolean;
     focusManager?: FocusManager;
-    popupContainer?: PopupContainer;
+    popupContainer?: PopupContainerView;
     focusArbitrator?: FocusArbitratorProvider;
 }
 export declare class View extends ViewBase<Types.ViewProps, {}> {
@@ -38,7 +38,7 @@ export declare class View extends ViewBase<Types.ViewProps, {}> {
     private _resizeDetectorOnScroll();
     getChildContext(): ViewContext;
     protected _getContainer(): HTMLElement | null;
-    private isHidden();
+    private _isHidden();
     private _updateFocusArbitratorProvider(props);
     setFocusRestricted(restricted: boolean): void;
     setFocusLimited(limited: boolean): void;

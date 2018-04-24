@@ -12,9 +12,11 @@ import RN = require('react-native');
 import Types = require('../common/Types');
 import { View as ViewCommon, ViewContext as ViewContextCommon } from '../native-common/View';
 import { FocusManagerFocusableComponent, FocusManager } from '../native-desktop/utils/FocusManager';
+import PopupContainerView from '../native-common/PopupContainerView';
 export interface ViewContext extends ViewContextCommon {
     isRxParentAText?: boolean;
     focusManager?: FocusManager;
+    popupContainer?: PopupContainerView;
 }
 export declare class View extends ViewCommon implements React.ChildContextProvider<ViewContext>, FocusManagerFocusableComponent {
     static contextTypes: React.ValidationMap<any>;
@@ -29,8 +31,13 @@ export declare class View extends ViewCommon implements React.ChildContextProvid
     private _focusManager;
     private _limitFocusWithin;
     private _isFocusLimited;
+    private _isFocusRestricted;
+    private _popupContainer;
+    private _popupToken;
     constructor(props: Types.ViewProps, context: ViewContext);
     componentWillReceiveProps(nextProps: Types.ViewProps): void;
+    enableFocusManager(): void;
+    disableFocusManager(): void;
     componentDidMount(): void;
     componentWillUnmount(): void;
     protected _buildInternalProps(props: Types.ViewProps): void;
@@ -39,6 +46,7 @@ export declare class View extends ViewCommon implements React.ChildContextProvid
     focus(): void;
     blur(): void;
     getChildContext(): ViewContext;
+    private _isHidden();
     setFocusRestricted(restricted: boolean): void;
     setFocusLimited(limited: boolean): void;
     setNativeProps(nativeProps: RN.ViewProps): void;
