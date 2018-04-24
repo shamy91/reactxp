@@ -55,6 +55,7 @@ export declare abstract class UserInterface {
     touchLatencyEvent: SubscribableEvent<(observedLatencyMs: number) => void>;
     abstract isNavigatingWithKeyboard(): boolean;
     keyboardNavigationEvent: SubscribableEvent<(isNavigatingWithKeyboard: boolean) => void>;
+    abstract setFocusArbitrator(arbitrator: Types.FocusArbitrator | undefined): void;
 }
 export declare abstract class Modal {
     abstract isDisplayed(modalId?: string): boolean;

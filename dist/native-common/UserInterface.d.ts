@@ -22,6 +22,7 @@ export declare class UserInterface extends RX.UserInterface {
     enableTouchLatencyEvents(latencyThresholdMs: number): void;
     evaluateTouchLatency(e: Types.SyntheticEvent): void;
     isNavigatingWithKeyboard(): boolean;
+    setFocusArbitrator(arbitrator: Types.FocusArbitrator | undefined): void;
 }
 declare const _default: UserInterface;
 export default _default;

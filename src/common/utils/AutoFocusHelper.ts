@@ -14,11 +14,11 @@ import Types = require('../Types');
 import Interfaces = require('../Interfaces');
 
 let _sortAndFilter: SortAndFilterFunc|undefined;
-//let _arbitrator: Types.FocusArbitrator|undefined;
 let _autoFocusTimer: number|undefined;
-//let _pendingAutoFocusItems: Types.FocusCandidate[] = [];
 
 let _lastFocusArbitratorProviderId = 0;
+
+let rootFocusArbitratorProvider: FocusArbitratorProvider;
 
 // The default behaviour in the keyboard navigation mode is to focus first
 // focusable component when a View with restrictFocusWithin is mounted.
@@ -29,11 +29,13 @@ export const FirstFocusableId = 'reactxp-first-focusable';
 
 export type SortAndFilterFunc = (candidates: Types.FocusCandidate[]) => Types.FocusCandidate[];
 
-export function setSortAndFilterFunc(sortAndFilter: SortAndFilterFunc) {
+export function setSortAndFilterFunc(sortAndFilter: SortAndFilterFunc): void {
     _sortAndFilter = sortAndFilter;
 }
 
-let defaultFocusArbitratorProvider: FocusArbitratorProvider;
+export function setRootFocusArbitrator(arbitrator: Types.FocusArbitrator | undefined): void {
+    rootFocusArbitratorProvider.setCallback(arbitrator);
+}
 
 export class FocusArbitratorProvider {
     private _id: number;
@@ -48,7 +50,7 @@ export class FocusArbitratorProvider {
         this._id = ++_lastFocusArbitratorProviderId;
         this._view = view;
         this._parentArbitratorProvider = view
-            ? ((view.context && view.context.focusArbitrator) || defaultFocusArbitratorProvider)
+            ? ((view.context && view.context.focusArbitrator) || rootFocusArbitratorProvider)
             : undefined;
         this._arbitratorCallback = arbitrator;
     }
@@ -139,14 +141,14 @@ export class FocusArbitratorProvider {
             (((component as any)._focusArbitratorProvider instanceof FocusArbitratorProvider) &&
              (component as any)._focusArbitratorProvider) ||
             (component.context && component.context.focusArbitrator) ||
-            defaultFocusArbitratorProvider;
+            rootFocusArbitratorProvider;
 
         focusArbitratorProvider._requestFocus(component, focus, isAvailable, accessibilityId);
 
         _autoFocusTimer = setTimeout(() => {
             _autoFocusTimer = undefined;
 
-            const candidate = defaultFocusArbitratorProvider._arbitrate();
+            const candidate = rootFocusArbitratorProvider._arbitrate();
 
             if (candidate) {
                 candidate.focus();
@@ -160,4 +162,4 @@ export function requestFocus(component: React.Component<any, any>, focus: () => 
     FocusArbitratorProvider.requestFocus(component, focus, isAvailable, accessibilityId);
 }
 
-defaultFocusArbitratorProvider = new FocusArbitratorProvider();
+rootFocusArbitratorProvider = new FocusArbitratorProvider();

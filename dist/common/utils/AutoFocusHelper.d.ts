@@ -15,6 +15,7 @@ import Interfaces = require('../Interfaces');
 export declare const FirstFocusableId = "reactxp-first-focusable";
 export declare type SortAndFilterFunc = (candidates: Types.FocusCandidate[]) => Types.FocusCandidate[];
 export declare function setSortAndFilterFunc(sortAndFilter: SortAndFilterFunc): void;
+export declare function setRootFocusArbitrator(arbitrator: Types.FocusArbitrator | undefined): void;
 export declare class FocusArbitratorProvider {
     private _id;
     private _parentArbitratorProvider;

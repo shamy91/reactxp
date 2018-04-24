@@ -34,6 +34,7 @@ var SyncTasks = require("synctasks");
 var MainViewStore_1 = require("./MainViewStore");
 var RootView_1 = require("./RootView");
 var RX = require("../common/Interfaces");
+var AutoFocusHelper_1 = require("../common/utils/AutoFocusHelper");
 var UserInterface = /** @class */ (function (_super) {
     __extends(UserInterface, _super);
     function UserInterface() {
@@ -164,6 +165,9 @@ var UserInterface = /** @class */ (function (_super) {
     };
     UserInterface.prototype.isNavigatingWithKeyboard = function () {
         return false;
+    };
+    UserInterface.prototype.setFocusArbitrator = function (arbitrator) {
+        AutoFocusHelper_1.setRootFocusArbitrator(arbitrator);
     };
     return UserInterface;
 }(RX.UserInterface));

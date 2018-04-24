@@ -89,6 +89,9 @@ export abstract class UserInterface {
     // Keyboard navigation
     abstract isNavigatingWithKeyboard(): boolean;
     keyboardNavigationEvent = new SubscribableEvent<(isNavigatingWithKeyboard: boolean) => void>();
+
+    // Focus management
+    abstract setFocusArbitrator(arbitrator: Types.FocusArbitrator | undefined): void;
 }
 
 export abstract class Modal {

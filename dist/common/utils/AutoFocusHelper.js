@@ -11,10 +11,9 @@
 */
 Object.defineProperty(exports, "__esModule", { value: true });
 var _sortAndFilter;
-//let _arbitrator: Types.FocusArbitrator|undefined;
 var _autoFocusTimer;
-//let _pendingAutoFocusItems: Types.FocusCandidate[] = [];
 var _lastFocusArbitratorProviderId = 0;
+var rootFocusArbitratorProvider;
 // The default behaviour in the keyboard navigation mode is to focus first
 // focusable component when a View with restrictFocusWithin is mounted.
 // This is the id for the first focusable which is used by FocusManager.
@@ -25,7 +24,10 @@ function setSortAndFilterFunc(sortAndFilter) {
     _sortAndFilter = sortAndFilter;
 }
 exports.setSortAndFilterFunc = setSortAndFilterFunc;
-var defaultFocusArbitratorProvider;
+function setRootFocusArbitrator(arbitrator) {
+    rootFocusArbitratorProvider.setCallback(arbitrator);
+}
+exports.setRootFocusArbitrator = setRootFocusArbitrator;
 var FocusArbitratorProvider = /** @class */ (function () {
     function FocusArbitratorProvider(view, arbitrator) {
         this._candidates = [];
@@ -33,7 +35,7 @@ var FocusArbitratorProvider = /** @class */ (function () {
         this._id = ++_lastFocusArbitratorProviderId;
         this._view = view;
         this._parentArbitratorProvider = view
-            ? ((view.context && view.context.focusArbitrator) || defaultFocusArbitratorProvider)
+            ? ((view.context && view.context.focusArbitrator) || rootFocusArbitratorProvider)
             : undefined;
         this._arbitratorCallback = arbitrator;
     }
@@ -103,11 +105,11 @@ var FocusArbitratorProvider = /** @class */ (function () {
         var focusArbitratorProvider = ((component._focusArbitratorProvider instanceof FocusArbitratorProvider) &&
             component._focusArbitratorProvider) ||
             (component.context && component.context.focusArbitrator) ||
-            defaultFocusArbitratorProvider;
+            rootFocusArbitratorProvider;
         focusArbitratorProvider._requestFocus(component, focus, isAvailable, accessibilityId);
         _autoFocusTimer = setTimeout(function () {
             _autoFocusTimer = undefined;
-            var candidate = defaultFocusArbitratorProvider._arbitrate();
+            var candidate = rootFocusArbitratorProvider._arbitrate();
             if (candidate) {
                 candidate.focus();
             }
@@ -120,4 +122,4 @@ function requestFocus(component, focus, isAvailable, accessibilityId) {
     FocusArbitratorProvider.requestFocus(component, focus, isAvailable, accessibilityId);
 }
 exports.requestFocus = requestFocus;
-defaultFocusArbitratorProvider = new FocusArbitratorProvider();
+rootFocusArbitratorProvider = new FocusArbitratorProvider();
