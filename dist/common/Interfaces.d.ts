@@ -55,7 +55,6 @@ export declare abstract class UserInterface {
     touchLatencyEvent: SubscribableEvent<(observedLatencyMs: number) => void>;
     abstract isNavigatingWithKeyboard(): boolean;
     keyboardNavigationEvent: SubscribableEvent<(isNavigatingWithKeyboard: boolean) => void>;
-    abstract setFocusArbitrator(arbitrator: Types.FocusArbitrator | undefined): void;
 }
 export declare abstract class Modal {
     abstract isDisplayed(modalId?: string): boolean;
@@ -233,6 +232,7 @@ export interface International {
     isRTL(): boolean;
 }
 export interface FocusUtils {
-    FirstFocusableId: string;
-    requestFocus(component: React.Component<any, any>, focus: () => void, isAvailable: () => boolean, accessibilityId?: string): void;
+    setFocusFirstEnabled(enabled: boolean): void;
+    setDefaultFocusArbitrator(arbitrator: Types.FocusArbitrator | undefined): void;
+    requestFocus(component: React.Component<any, any>, focus: () => void, isAvailable: () => boolean): void;
 }

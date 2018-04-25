@@ -136,10 +136,10 @@ var FocusManager = /** @class */ (function (_super) {
         var first = FocusManager._getFirstFocusable(last);
         if (first) {
             var storedComponent_1 = first.storedComponent;
-            AutoFocusHelper_1.requestFocus(storedComponent_1.component, function () {
+            AutoFocusHelper_1.FocusArbitratorProvider.requestFocus(storedComponent_1.component, function () {
                 FocusManager.setLastFocusedProgrammatically(first.el);
                 first.el.focus();
-            }, function () { return FocusManager._isComponentAvailable(storedComponent_1); }, AutoFocusHelper_1.FirstFocusableId);
+            }, function () { return FocusManager._isComponentAvailable(storedComponent_1); }, true);
         }
     };
     FocusManager.prototype.resetFocus = function () {
@@ -154,10 +154,10 @@ var FocusManager = /** @class */ (function (_super) {
             var first_1 = FocusManager._getFirstFocusable(false, FocusManager._currentRestrictionOwner);
             if (first_1) {
                 var storedComponent_2 = first_1.storedComponent;
-                AutoFocusHelper_1.requestFocus(storedComponent_2.component, function () {
+                AutoFocusHelper_1.FocusArbitratorProvider.requestFocus(storedComponent_2.component, function () {
                     FocusManager.setLastFocusedProgrammatically(first_1.el);
                     first_1.el.focus();
-                }, function () { return FocusManager._isComponentAvailable(storedComponent_2); }, AutoFocusHelper_1.FirstFocusableId);
+                }, function () { return FocusManager._isComponentAvailable(storedComponent_2); }, true);
             }
         }
         else if ((typeof document !== 'undefined') && document.body && document.body.focus && document.body.blur) {
@@ -176,20 +176,20 @@ var FocusManager = /** @class */ (function (_super) {
             // focusable, focusing it, removing the focus and making it unfocusable
             // back again.
             // Defer the work to avoid triggering sync layout.
-            var currentFocused = FocusManager._currentFocusedComponent;
-            if (currentFocused && !currentFocused.removed && !currentFocused.restricted) {
-                // No need to reset the focus because it's moved inside the restricted area
-                // already (manually or with autofocus).
-                return;
-            }
             FocusManager._resetFocusTimer = setTimeout(function () {
                 FocusManager._resetFocusTimer = undefined;
+                var currentFocused = FocusManager._currentFocusedComponent;
+                if (currentFocused && !currentFocused.removed && !currentFocused.restricted) {
+                    // No need to reset the focus because it's moved inside the restricted area
+                    // already (manually or with autofocus).
+                    return;
+                }
                 var prevTabIndex = FocusManager._setTabIndex(document.body, -1);
                 FocusManager.setLastFocusedProgrammatically(document.body);
                 document.body.focus();
                 document.body.blur();
                 FocusManager._setTabIndex(document.body, prevTabIndex);
-            }, 0);
+            }, 100);
         }
     };
     FocusManager.prototype._updateComponentFocusRestriction = function (storedComponent) {

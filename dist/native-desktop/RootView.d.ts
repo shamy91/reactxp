@@ -20,6 +20,7 @@ declare const RootViewUsingStore: {
         _onKeyDownCapture: (e: React.SyntheticEvent<any>) => void;
         _updateKeyboardNavigationState(isNavigatingWithKeyboard: boolean): void;
         _onKeyDown: (e: React.SyntheticEvent<any>) => void;
+        _onKeyPress: (e: React.SyntheticEvent<any>) => void;
         _onKeyUp: (e: React.SyntheticEvent<any>) => void;
         getChildContext(): {
             focusManager: FocusManager;
@@ -48,6 +49,7 @@ declare const RootViewUsingProps: {
         _onKeyDownCapture: (e: React.SyntheticEvent<any>) => void;
         _updateKeyboardNavigationState(isNavigatingWithKeyboard: boolean): void;
         _onKeyDown: (e: React.SyntheticEvent<any>) => void;
+        _onKeyPress: (e: React.SyntheticEvent<any>) => void;
         _onKeyUp: (e: React.SyntheticEvent<any>) => void;
         getChildContext(): {
             focusManager: FocusManager;

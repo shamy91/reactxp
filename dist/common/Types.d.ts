@@ -286,12 +286,12 @@ export declare enum AccessibilityTrait {
     None = 36,
 }
 export declare type FocusArbitrator = (candidates: FocusCandidate[]) => FocusCandidate | undefined;
-export interface FocusCandidate {
-    accessibilityId?: string;
-    parentAccessibilityId?: string;
-    component: React.Component<any, any>;
-    focus: () => void;
-    isAvailable: () => boolean;
+export declare abstract class FocusCandidate {
+    abstract component: React.Component<any, any>;
+    abstract focus: () => void;
+    abstract isAvailable: () => boolean;
+    abstract getAccessibilityId: () => string | undefined;
+    abstract getParentAccessibilityId: () => string | undefined;
 }
 export interface CommonStyledProps<T> extends CommonProps {
     style?: StyleRuleSetRecursive<T>;

@@ -24,7 +24,6 @@ var ScrollViewConfig_1 = require("./ScrollViewConfig");
 var SyncTasks = require("synctasks");
 var FrontLayerViewManager_1 = require("./FrontLayerViewManager");
 var RX = require("../common/Interfaces");
-var AutoFocusHelper_1 = require("../common/utils/AutoFocusHelper");
 var UserInterface = /** @class */ (function (_super) {
     __extends(UserInterface, _super);
     function UserInterface() {
@@ -126,9 +125,6 @@ var UserInterface = /** @class */ (function (_super) {
     };
     UserInterface.prototype.isNavigatingWithKeyboard = function () {
         return this._isNavigatingWithKeyboard;
-    };
-    UserInterface.prototype.setFocusArbitrator = function (arbitrator) {
-        AutoFocusHelper_1.setRootFocusArbitrator(arbitrator);
     };
     return UserInterface;
 }(RX.UserInterface));

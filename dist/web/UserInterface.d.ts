@@ -31,7 +31,6 @@ export declare class UserInterface extends RX.UserInterface {
     evaluateTouchLatency(e: Types.MouseEvent): void;
     isNavigatingWithKeyboard(): boolean;
     private _keyboardNavigationStateChanged;
-    setFocusArbitrator(arbitrator: Types.FocusArbitrator | undefined): void;
 }
 declare const _default: UserInterface;
 export default _default;

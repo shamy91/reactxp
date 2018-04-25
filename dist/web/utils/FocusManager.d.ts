@@ -1,5 +1,5 @@
-import Types = require('../../common/Types');
 import { FocusManager as FocusManagerBase, FocusableComponentInternal, StoredFocusableComponent } from '../../common/utils/FocusManager';
+import { FocusCandidate } from '../../common/utils/AutoFocusHelper';
 import { FocusableComponentStateCallback } from '../../common/utils/FocusManager';
 export { FocusableComponentStateCallback };
 export declare class FocusManager extends FocusManagerBase {
@@ -20,7 +20,7 @@ export declare class FocusManager extends FocusManagerBase {
     protected _updateComponentFocusRestriction(storedComponent: StoredFocusableComponent): void;
     private static _setTabIndex(element, value);
     private static _setAriaHidden(element, value);
-    static sortAndFilterAutoFocusCandidates(candidates: Types.FocusCandidate[]): Types.FocusCandidate[];
+    static sortAndFilterAutoFocusCandidates(candidates: FocusCandidate[]): FocusCandidate[];
 }
 export declare function applyFocusableComponentMixin(Component: any, isConditionallyFocusable?: Function): void;
 export default FocusManager;

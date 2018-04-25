@@ -341,7 +341,7 @@ var View = /** @class */ (function (_super) {
         var _this = this;
         _super.prototype.componentDidMount.call(this);
         if (this.props.autoFocus) {
-            AutoFocusHelper_1.requestFocus(this, function () { return _this.focus(); }, function () { return _this._isMounted; }, this.props.accessibilityId);
+            AutoFocusHelper_1.FocusArbitratorProvider.requestFocus(this, function () { return _this.focus(); }, function () { return _this._isMounted; });
         }
         // If we are mounted as visible, do our initialization now. If we are hidden, it will
         // be done later when the popup is shown.

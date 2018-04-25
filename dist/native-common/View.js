@@ -199,7 +199,7 @@ var View = /** @class */ (function (_super) {
             this._mixin_componentDidMount();
         }
         if (this.props.autoFocus) {
-            AutoFocusHelper_1.requestFocus(this, function () { return _this.focus(); }, function () { return _this._isMounted; }, this.props.accessibilityId);
+            AutoFocusHelper_1.FocusArbitratorProvider.requestFocus(this, function () { return _this.focus(); }, function () { return _this._isMounted; });
         }
     };
     View.prototype.componentWillUnmount = function () {

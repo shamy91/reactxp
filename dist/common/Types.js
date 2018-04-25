@@ -92,6 +92,14 @@ var AccessibilityTrait;
     // is the highest priority trait.
     AccessibilityTrait[AccessibilityTrait["None"] = 36] = "None";
 })(AccessibilityTrait = exports.AccessibilityTrait || (exports.AccessibilityTrait = {}));
+// FocusArbitrator function will be called with an array of FocusCandidate.
+// See https://microsoft.github.io/reactxp/docs/apis/focusutils.html
+var FocusCandidate = /** @class */ (function () {
+    function FocusCandidate() {
+    }
+    return FocusCandidate;
+}());
+exports.FocusCandidate = FocusCandidate;
 var LimitFocusType;
 (function (LimitFocusType) {
     LimitFocusType[LimitFocusType["Unlimited"] = 0] = "Unlimited";

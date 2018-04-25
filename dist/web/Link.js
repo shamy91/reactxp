@@ -25,22 +25,18 @@ var _styles = {
     defaultStyle: {
         position: 'relative',
         display: 'inline',
-        flexDirection: 'column',
         flexGrow: 0,
         flexShrink: 0,
         overflow: 'hidden',
-        alignItems: 'stretch',
         overflowWrap: 'break-word',
         msHyphens: 'auto'
     },
     ellipsis: {
         position: 'relative',
         display: 'inline',
-        flexDirection: 'column',
         flexGrow: 0,
         flexShrink: 0,
         overflow: 'hidden',
-        alignItems: 'stretch',
         whiteSpace: 'pre',
         textOverflow: 'ellipsis'
     }

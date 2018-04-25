@@ -1,3 +1,4 @@
+/// <reference types="react" />
 /**
 * FocusUtils.ts
 *
@@ -7,10 +8,11 @@
 * Publicly accessible functions for managing the focus.
 */
 import RXInterfaces = require('./Interfaces');
-import { requestFocus } from './utils/AutoFocusHelper';
+import { FocusArbitrator } from './Types';
 export declare class FocusUtils implements RXInterfaces.FocusUtils {
-    FirstFocusableId: string;
-    requestFocus: typeof requestFocus;
+    setFocusFirstEnabled(enabled: boolean): void;
+    requestFocus(component: React.Component<any, any>, focus: () => void, isAvailable: () => boolean): void;
+    setDefaultFocusArbitrator(arbitrator: FocusArbitrator | undefined): void;
 }
 declare const _default: FocusUtils;
 export default _default;

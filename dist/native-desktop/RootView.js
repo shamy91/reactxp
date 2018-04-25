@@ -81,6 +81,13 @@ function applyDesktopBehaviorMixin(RootViewBase) {
                     var kbdEvent = EventHelpers_1.default.toKeyboardEvent(e);
                     Input_1.default.dispatchKeyDown(kbdEvent);
                 };
+                _this._onKeyPress = function (e) {
+                    var kbdEvent = EventHelpers_1.default.toKeyboardEvent(e);
+                    // This is temporary fix while we still have both keyPress and keyDown 
+                    // events bubbling up for the same situation of user pressing down a key.
+                    // TODO: consolidate key events #602
+                    Input_1.default.dispatchKeyDown(kbdEvent);
+                };
                 _this._onKeyUp = function (e) {
                     var kbdEvent = EventHelpers_1.default.toKeyboardEvent(e);
                     var activePopupId = FrontLayerViewManager_1.default.getActivePopupId();
@@ -120,6 +127,7 @@ function applyDesktopBehaviorMixin(RootViewBase) {
                 // Yet the handlers are called as part of capturing/bubbling events for/from children.
                 var internalProps = {
                     onKeyDown: this._onKeyDown,
+                    onKeyPress: this._onKeyPress,
                     onKeyDownCapture: this._onKeyDownCapture,
                     onKeyUp: this._onKeyUp,
                     onTouchStartCapture: this._onTouchStartCapture
