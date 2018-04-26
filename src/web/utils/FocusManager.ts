@@ -85,7 +85,8 @@ export class FocusManager extends FocusManagerBase {
                     // send the focus to the address bar anyway.
                     FocusManager.focusFirst(_isShiftPressed);
                 }
-            }, 0);
+            }, 100); // FocusArbitrator has setTimeout(0), making sure to perform this check after it (new version in progress will do it
+                     // better).
         });
     }
 
