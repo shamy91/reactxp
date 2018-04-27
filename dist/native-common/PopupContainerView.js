@@ -1,6 +1,6 @@
 "use strict";
 /**
-* PopupContainerView.ts
+* PopupContainerView.tsx
 *
 * Copyright (c) Microsoft Corporation. All rights reserved.
 * Licensed under the MIT license.
@@ -25,6 +25,7 @@ var assert = require("assert");
 var React = require("react");
 var RN = require("react-native");
 var International_1 = require("./International");
+var PopupContainerViewBase_1 = require("../common/PopupContainerViewBase");
 // Width of the "alley" around popups so they don't get too close to the boundary of the screen boundary.
 var ALLEY_WIDTH = 2;
 // How close to the edge of the popup should we allow the anchor offset to get before
@@ -32,8 +33,8 @@ var ALLEY_WIDTH = 2;
 var MIN_ANCHOR_OFFSET = 16;
 var PopupContainerView = /** @class */ (function (_super) {
     __extends(PopupContainerView, _super);
-    function PopupContainerView(props) {
-        var _this = _super.call(this, props) || this;
+    function PopupContainerView(props, context) {
+        var _this = _super.call(this, props, context) || this;
         _this._mountedComponent = null;
         _this._viewHandle = null;
         _this._onMount = function (component) {
@@ -62,6 +63,7 @@ var PopupContainerView = /** @class */ (function (_super) {
         }
     };
     PopupContainerView.prototype.componentDidUpdate = function (prevProps, prevState) {
+        _super.prototype.componentDidUpdate.call(this, prevProps, prevState);
         if (this.props.popupOptions && !this.props.hidden) {
             this._recalcPosition();
             if (!this._respositionPopupTimer) {
@@ -95,7 +97,9 @@ var PopupContainerView = /** @class */ (function (_super) {
             alignItems: 'flex-start',
             alignSelf: 'flex-start',
             opacity: this.state.isMeasuringPopup ? 0 : 1,
-            overflow: 'visible'
+            overflow: 'visible',
+            width: this.props.hidden ? 0 : undefined,
+            height: this.props.hidden ? 0 : undefined
         };
         return (React.createElement(RN.View, { style: style, ref: this.props.hidden ? undefined : this._onMount }, popupView));
     };
@@ -319,6 +323,6 @@ var PopupContainerView = /** @class */ (function (_super) {
         }
     };
     return PopupContainerView;
-}(React.Component));
+}(PopupContainerViewBase_1.PopupContainerViewBase));
 exports.PopupContainerView = PopupContainerView;
 exports.default = PopupContainerView;

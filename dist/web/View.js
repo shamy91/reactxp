@@ -192,7 +192,7 @@ var View = /** @class */ (function (_super) {
     View.prototype._getContainer = function () {
         return ReactDOM.findDOMNode(this);
     };
-    View.prototype.isHidden = function () {
+    View.prototype._isHidden = function () {
         return !!this._popupContainer && this._popupContainer.isHidden();
     };
     View.prototype._updateFocusArbitratorProvider = function (props) {
@@ -215,7 +215,7 @@ var View = /** @class */ (function (_super) {
             }
             return;
         }
-        if (!this.isHidden()) {
+        if (!this._isHidden()) {
             if (restricted) {
                 this._focusManager.restrictFocusWithin();
             }
@@ -232,7 +232,7 @@ var View = /** @class */ (function (_super) {
             }
             return;
         }
-        if (!this.isHidden()) {
+        if (!this._isHidden()) {
             if (limited && !this._isFocusLimited) {
                 this._focusManager.limitFocusWithin(this.props.limitFocusWithin);
             }
@@ -345,7 +345,7 @@ var View = /** @class */ (function (_super) {
         }
         // If we are mounted as visible, do our initialization now. If we are hidden, it will
         // be done later when the popup is shown.
-        if (!this.isHidden()) {
+        if (!this._isHidden()) {
             this.enableFocusManager();
         }
         if (this._focusManager && this._popupContainer) {

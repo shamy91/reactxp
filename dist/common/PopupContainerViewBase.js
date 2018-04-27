@@ -1,13 +1,13 @@
 "use strict";
 /**
-* PopupContainer.tsx
+* PopupContainerViewBase.tsx
 *
 * Copyright (c) Microsoft Corporation. All rights reserved.
 * Licensed under the MIT license.
 *
 * Common parent of all components rendered into a popup. Calls onShow and onHide
 * callbacks when the popup is hidden (i.e. "closed" but still rendered as hidden)
-* and re-shown.
+* and re-shown. Abstract class to be overriden per platform.
 */
 var __extends = (this && this.__extends) || (function () {
     var extendStatics = Object.setPrototypeOf ||
@@ -20,30 +20,22 @@ var __extends = (this && this.__extends) || (function () {
     };
 })();
 Object.defineProperty(exports, "__esModule", { value: true });
-var _ = require("./utils/lodashMini");
 var React = require("react");
 var PropTypes = require("prop-types");
-var PopupContainer = /** @class */ (function (_super) {
-    __extends(PopupContainer, _super);
-    function PopupContainer(props, context) {
+var PopupContainerViewBase = /** @class */ (function (_super) {
+    __extends(PopupContainerViewBase, _super);
+    function PopupContainerViewBase(props, context) {
         var _this = _super.call(this, props, context) || this;
         _this._popupComponentStack = [];
         return _this;
     }
-    PopupContainer.prototype.getChildContext = function () {
+    PopupContainerViewBase.prototype.getChildContext = function () {
         return {
             focusManager: this.context.focusManager,
             popupContainer: this
         };
     };
-    PopupContainer.prototype.render = function () {
-        var style = _.clone(this.props.style);
-        if (this.props.hidden) {
-            style.visibility = 'hidden';
-        }
-        return (React.createElement("div", { style: style, onMouseEnter: this.props.onMouseEnter, onMouseLeave: this.props.onMouseLeave }, this.props.children));
-    };
-    PopupContainer.prototype.registerPopupComponent = function (onShow, onHide) {
+    PopupContainerViewBase.prototype.registerPopupComponent = function (onShow, onHide) {
         var component = {
             onShow: onShow,
             onHide: onHide
@@ -51,13 +43,13 @@ var PopupContainer = /** @class */ (function (_super) {
         this._popupComponentStack.push(component);
         return component;
     };
-    PopupContainer.prototype.unregisterPopupComponent = function (component) {
+    PopupContainerViewBase.prototype.unregisterPopupComponent = function (component) {
         this._popupComponentStack = this._popupComponentStack.filter(function (c) { return c !== component; });
     };
-    PopupContainer.prototype.isHidden = function () {
-        return this.props.hidden || false;
+    PopupContainerViewBase.prototype.isHidden = function () {
+        return !!this.props.hidden;
     };
-    PopupContainer.prototype.componentDidUpdate = function (prevProps) {
+    PopupContainerViewBase.prototype.componentDidUpdate = function (prevProps, prevState) {
         if (prevProps.hidden && !this.props.hidden) {
             // call onShow on all registered components (iterate front to back)
             for (var i = 0; i < this._popupComponentStack.length; i++) {
@@ -71,14 +63,14 @@ var PopupContainer = /** @class */ (function (_super) {
             }
         }
     };
-    PopupContainer.contextTypes = {
+    PopupContainerViewBase.contextTypes = {
         focusManager: PropTypes.object
     };
-    PopupContainer.childContextTypes = {
+    PopupContainerViewBase.childContextTypes = {
         focusManager: PropTypes.object,
         popupContainer: PropTypes.object
     };
-    return PopupContainer;
+    return PopupContainerViewBase;
 }(React.Component));
-exports.PopupContainer = PopupContainer;
-exports.default = PopupContainer;
+exports.PopupContainerViewBase = PopupContainerViewBase;
+exports.default = PopupContainerViewBase;
