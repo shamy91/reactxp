@@ -48,6 +48,7 @@ var traitsMap = (_b = {},
     _b[Types.AccessibilityTrait.StartsMedia] = 'startsMedia',
     _b[Types.AccessibilityTrait.AllowsDirectInteraction] = 'allowsDirectionInteraction',
     _b[Types.AccessibilityTrait.PageTurn] = 'pageTurn',
+    _b[Types.AccessibilityTrait.ListItem] = 'listItem',
     _b);
 // Android supported map.
 var componentTypeMap = (_c = {},
