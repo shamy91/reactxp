@@ -46,6 +46,10 @@ var Link = /** @class */ (function (_super) {
         _this._onFocusableRef = function (btn) {
             _this._focusableElement = btn;
         };
+        _this._nativeHyperlinkElement = null;
+        _this._onNativeHyperlinkRef = function (ref) {
+            _this._nativeHyperlinkElement = ref;
+        };
         _this._onKeyDown = function (e) {
             var keyEvent = EventHelpers_1.default.toKeyboardEvent(e);
             var key = keyEvent.keyCode;
@@ -71,31 +75,53 @@ var Link = /** @class */ (function (_super) {
     }
     Link.prototype._render = function (internalProps) {
         if (this.context && !this.context.isRxParentAText) {
-            var tabIndex = this.getTabIndex();
-            var windowsTabFocusable = tabIndex !== undefined && tabIndex >= 0;
-            // We don't use 'string' ref type inside ReactXP
-            var originalRef = internalProps.ref;
-            if (typeof originalRef === 'string') {
-                throw new Error('Link: ReactXP must not use string refs internally');
-            }
-            var componentRef = originalRef;
-            var focusableTextProps = __assign({}, internalProps, { componentRef: componentRef, ref: this._onFocusableRef, isTabStop: windowsTabFocusable, tabIndex: tabIndex, disableSystemFocusVisuals: false, handledKeyDownKeys: DOWN_KEYCODES, handledKeyUpKeys: UP_KEYCODES, onKeyDown: this._onKeyDown, onKeyUp: this._onKeyUp, onFocus: this._onFocus, onAccessibilityTap: this._onPress });
-            return (React.createElement(FocusableText, __assign({}, focusableTextProps)));
+            return this._renderLinkAsFocusableText(internalProps);
+        }
+        else if (RNW.HyperlinkWindows) {
+            return this._renderLinkAsNativeHyperlink(internalProps);
         }
         else {
-            // TODO: The "in text parent" case requires a React Native view that maps to
-            // XAML Hyperlink but this RN view isn't implemented yet.
             return _super.prototype._render.call(this, internalProps);
         }
+    };
+    Link.prototype._renderLinkAsFocusableText = function (internalProps) {
+        var focusableTextProps = this._createFocusableTextProps(internalProps);
+        return (React.createElement(FocusableText, __assign({}, focusableTextProps)));
+    };
+    Link.prototype._createFocusableTextProps = function (internalProps) {
+        var tabIndex = this.getTabIndex();
+        var windowsTabFocusable = tabIndex !== undefined && tabIndex >= 0;
+        // We don't use 'string' ref type inside ReactXP
+        var originalRef = internalProps.ref;
+        if (typeof originalRef === 'string') {
+            throw new Error('Link: ReactXP must not use string refs internally');
+        }
+        var componentRef = originalRef;
+        var focusableTextProps = __assign({}, internalProps, { componentRef: componentRef, ref: this._onFocusableRef, isTabStop: windowsTabFocusable, tabIndex: tabIndex, disableSystemFocusVisuals: false, handledKeyDownKeys: DOWN_KEYCODES, handledKeyUpKeys: UP_KEYCODES, onKeyDown: this._onKeyDown, onKeyUp: this._onKeyUp, onFocus: this._onFocus, onAccessibilityTap: this._onPress });
+        return focusableTextProps;
+    };
+    Link.prototype._renderLinkAsNativeHyperlink = function (internalProps) {
+        // We don't use 'string' ref type inside ReactXP
+        var originalRef = internalProps.ref;
+        if (typeof originalRef === 'string') {
+            throw new Error('Link: ReactXP must not use string refs internally');
+        }
+        return (React.createElement(RNW.HyperlinkWindows, __assign({}, internalProps, { ref: this._onNativeHyperlinkRef, onFocus: this._onFocus })));
     };
     Link.prototype.focus = function () {
         if (this._focusableElement && this._focusableElement.focus) {
             this._focusableElement.focus();
         }
+        else if (this._nativeHyperlinkElement && this._nativeHyperlinkElement.focus) {
+            this._nativeHyperlinkElement.focus();
+        }
     };
     Link.prototype.blur = function () {
         if (this._focusableElement && this._focusableElement.blur) {
             this._focusableElement.blur();
+        }
+        else if (this._nativeHyperlinkElement && this._nativeHyperlinkElement.blur) {
+            this._nativeHyperlinkElement.blur();
         }
     };
     Link.prototype.setNativeProps = function (nativeProps) {

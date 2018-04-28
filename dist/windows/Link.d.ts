@@ -17,9 +17,14 @@ export interface LinkContext {
 export declare class Link extends LinkCommon implements FocusManagerFocusableComponent {
     static contextTypes: React.ValidationMap<any>;
     context: LinkContext;
+    protected _render(internalProps: RN.TextProps): JSX.Element;
+    private _renderLinkAsFocusableText(internalProps);
     private _focusableElement;
     private _onFocusableRef;
-    protected _render(internalProps: RN.TextProps): JSX.Element;
+    private _createFocusableTextProps(internalProps);
+    private _nativeHyperlinkElement;
+    private _onNativeHyperlinkRef;
+    private _renderLinkAsNativeHyperlink(internalProps);
     focus(): void;
     blur(): void;
     setNativeProps(nativeProps: RN.TextProps): void;
