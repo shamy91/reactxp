@@ -101,7 +101,7 @@ var PopupContainerView = /** @class */ (function (_super) {
             width: this.props.hidden ? 0 : undefined,
             height: this.props.hidden ? 0 : undefined
         };
-        return (React.createElement(RN.View, { style: style, ref: this.props.hidden ? undefined : this._onMount }, popupView));
+        return (React.createElement(RN.View, { style: style, ref: this._onMount }, popupView));
     };
     PopupContainerView.prototype._recalcPosition = function () {
         var _this = this;
