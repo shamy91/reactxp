@@ -27,6 +27,10 @@ export class Clipboard extends RX.Clipboard {
        return SyncTasks.Rejected<string>('Not supported on web');
     }
 
+    public setImage(imageUri: string) {
+        return;
+    }
+
     private static _createInvisibleNode(): HTMLTextAreaElement {
         const node = document.createElement('textarea');
         node.style.position = 'absolute';

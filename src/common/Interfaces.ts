@@ -150,6 +150,7 @@ export abstract class Image extends React.Component<Types.ImageProps, any> {
 export abstract class Clipboard {
     abstract setText(text: string): void;
     abstract getText(): SyncTasks.Promise<string>;
+    abstract setImage(imageUri: string): void;
 }
 
 export abstract class Link extends React.Component<Types.LinkProps, any> {}

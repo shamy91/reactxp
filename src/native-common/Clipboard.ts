@@ -20,6 +20,10 @@ export class Clipboard extends RX.Clipboard  {
     public getText(): SyncTasks.Promise<string> {
         return SyncTasks.fromThenable(RN.Clipboard.getString());
     }
+
+    public setImage(imageUri: string) {
+        RN.Clipboard.setImage(imageUri);
+    }
 }
 
 export default new Clipboard();
