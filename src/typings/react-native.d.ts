@@ -31,7 +31,8 @@ declare module 'react-native' {
         props ?: any
     ): React.ReactElement<P>;
 
-    interface SyntheticEvent<T> extends React.SyntheticEvent<T> {}
+    interface SyntheticEvent<T> extends React.SyntheticEvent<T> { }
+    interface ClipboardEvent<T> extends React.ClipboardEvent<T> { }
 
     function isValidElement(object: {}): boolean;
     function findNodeHandle(componentOrHandle: any): number | null;
@@ -368,6 +369,7 @@ declare module 'react-native' {
         multiline?: boolean;
         onBlur?: (() => void);
         onKeyPress?: (e: SyntheticEvent<TextInput>) => void;
+        onPaste?: (e: React.ClipboardEvent<TextInput>) => void;
         onChange?: Function;
         onChangeText?: ((changedText: string) => void);
         onSelectionChange?: ((selection: SyntheticEvent<TextInput>) => void);
@@ -702,6 +704,7 @@ declare module 'react-native' {
     class Clipboard {
         static setString(content: string): void;
         static getString(): Promise<string>;
+        static setImage(contentUrl: string): void;
     }
 
     class CameraRoll {
