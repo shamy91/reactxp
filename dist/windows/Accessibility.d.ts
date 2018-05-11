@@ -4,6 +4,7 @@ export declare class Accessibility extends NativeAccessibility {
     constructor();
     private _updateIsHighContrast(isEnabled);
     isHighContrastEnabled(): boolean;
+    announceForAccessibility(announcement: string): void;
 }
 declare const _default: Accessibility;
 export default _default;
