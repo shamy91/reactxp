@@ -26,6 +26,7 @@ var __assign = (this && this.__assign) || Object.assign || function(t) {
     return t;
 };
 Object.defineProperty(exports, "__esModule", { value: true });
+var _ = require("../native-common/lodashMini");
 var React = require("react");
 var RN = require("react-native");
 var RNW = require("react-native-windows");
@@ -146,6 +147,15 @@ var View = /** @class */ (function (_super) {
         var _this = this;
         // Base class does the bulk of _internalprops creation
         _super.prototype._buildInternalProps.call(this, props);
+        // On Windows a view with importantForAccessibility='Yes' or non-empty accessibilityLabel will hide its children.
+        // However, a view that is also a group should keep children visible to UI Automation. The following condition checks
+        // and sets RNW importantForAccessibility property to 'yes-dont-hide-descendants' to keep view children visible.
+        if (((props.accessibilityTraits === Types.AccessibilityTrait.Group) ||
+            (_.isArray(props.accessibilityTraits) && (props.accessibilityTraits.indexOf(Types.AccessibilityTrait.Group) !== -1))) &&
+            ((props.importantForAccessibility === Types.ImportantForAccessibility.Yes) ||
+                (props.accessibilityLabel && props.accessibilityLabel.length > 0))) {
+            this._internalProps.importantForAccessibility = 'yes-dont-hide-descendants';
+        }
         if (props.onKeyPress) {
             // Define the handler for "onKeyDown" on first use, it's the safest way when functions
             // called from super constructors are involved.
