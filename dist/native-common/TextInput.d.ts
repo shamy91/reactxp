@@ -35,6 +35,7 @@ export declare class TextInput extends React.Component<Types.TextInputProps, Tex
     private _onChangeText;
     private _onSelectionChange;
     private _onKeyPress;
+    private _onPaste;
     private _onScroll;
     blur(): void;
     focus(): void;

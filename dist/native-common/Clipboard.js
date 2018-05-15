@@ -32,6 +32,9 @@ var Clipboard = /** @class */ (function (_super) {
     Clipboard.prototype.getText = function () {
         return SyncTasks.fromThenable(RN.Clipboard.getString());
     };
+    Clipboard.prototype.setImage = function (imageUri) {
+        RN.Clipboard.setImage(imageUri);
+    };
     return Clipboard;
 }(RX.Clipboard));
 exports.Clipboard = Clipboard;

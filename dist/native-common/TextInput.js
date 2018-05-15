@@ -92,6 +92,11 @@ var TextInput = /** @class */ (function (_super) {
                 _this.props.onKeyPress(EventHelpers_1.default.toKeyboardEvent(e));
             }
         };
+        _this._onPaste = function (e) {
+            if (_this.props.onPaste) {
+                _this.props.onPaste(e);
+            }
+        };
         _this._onScroll = function (e) {
             if (_this.props.onScroll) {
                 var contentOffset = e.nativeEvent.contentOffset;
@@ -141,6 +146,7 @@ var TextInput = /** @class */ (function (_super) {
             onSubmitEditing: this.props.onSubmitEditing,
             onKeyPress: this._onKeyPress,
             onChangeText: this._onChangeText,
+            onPaste: this._onPaste,
             onSelectionChange: this._onSelectionChange,
             onFocus: this._onFocus,
             onBlur: this._onBlur,

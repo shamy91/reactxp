@@ -103,6 +103,7 @@ export declare abstract class Image extends React.Component<Types.ImageProps, an
 export declare abstract class Clipboard {
     abstract setText(text: string): void;
     abstract getText(): SyncTasks.Promise<string>;
+    abstract setImage(imageUri: string): void;
 }
 export declare abstract class Link extends React.Component<Types.LinkProps, any> {
 }

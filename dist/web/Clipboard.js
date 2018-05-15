@@ -39,6 +39,9 @@ var Clipboard = /** @class */ (function (_super) {
         // Not supported in web platforms. This should can be only handled in the paste event handlers
         return SyncTasks.Rejected('Not supported on web');
     };
+    Clipboard.prototype.setImage = function (imageUri) {
+        return;
+    };
     Clipboard._createInvisibleNode = function () {
         var node = document.createElement('textarea');
         node.style.position = 'absolute';
